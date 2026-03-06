@@ -146,94 +146,97 @@ CATEGORY_PATTERNS = {
 
 MODEL_RECOMMENDATIONS = {
     # EINFACHE Tasks ────────────────────────────────────────────────────────
+    # Ollama Cloud verfügbare Modelle (Stand 2026-03):
+    #   small : gemma3:4b, ministral-3:3b
+    #   medium: gemma3:12b, ministral-3:8b
+    #   large : gemma3:27b, ministral-3:14b, gpt-oss:20b
     "simple": {
-        # Textformatierung und Übersetzung
         "translation": {
-            "model": "llama3.2",
-            "reasoning": "Llama 3.2 ist für Übersetzungen ausreichend schnell und akkurat.",
-            "alternatives": ["mistral", "qwen2.5:3b"],
+            "model": "gemma3:4b",
+            "reasoning": "Gemma 3 4B ist für Übersetzungen schnell und ausreichend akkurat.",
+            "alternatives": ["ministral-3:3b", "gemma3:12b"],
         },
         "formatting": {
-            "model": "llama3.2",
-            "reasoning": "Für reine Textformatierung genügt llama3.2 vollständig.",
-            "alternatives": ["qwen2.5:3b", "mistral"],
+            "model": "gemma3:4b",
+            "reasoning": "Für reine Textformatierung genügt gemma3:4b vollständig.",
+            "alternatives": ["ministral-3:3b", "gemma3:12b"],
         },
         "summarization": {
-            "model": "llama3.2",
-            "reasoning": "Einfache Zusammenfassungen sind eine Stärke von llama3.2.",
-            "alternatives": ["mistral", "qwen2.5:3b"],
+            "model": "gemma3:4b",
+            "reasoning": "Einfache Zusammenfassungen: gemma3:4b schnell und kostengünstig.",
+            "alternatives": ["ministral-3:3b", "gemma3:12b"],
         },
         "data-extraction": {
-            "model": "llama3.2",
-            "reasoning": "Regex und Extraktion: llama3.2 folgt Anweisungen zuverlässig.",
-            "alternatives": ["qwen2.5:3b"],
+            "model": "gemma3:4b",
+            "reasoning": "Regex und strukturierte Extraktion: gemma3:4b folgt Anweisungen zuverlässig.",
+            "alternatives": ["ministral-3:3b"],
         },
         "template-filling": {
-            "model": "llama3.2",
-            "reasoning": "Template-Befüllung ist einfache Textverarbeitung — llama3.2 ideal.",
-            "alternatives": ["qwen2.5:3b"],
+            "model": "gemma3:4b",
+            "reasoning": "Template-Befüllung ist einfache Textverarbeitung — gemma3:4b ideal.",
+            "alternatives": ["ministral-3:3b"],
         },
         "meeting-docs": {
-            "model": "llama3.2",
-            "reasoning": "Protokoll-Formatierung ist strukturierte Textverarbeitung.",
-            "alternatives": ["mistral"],
+            "model": "gemma3:4b",
+            "reasoning": "Protokoll-Formatierung: gemma3:4b strukturiert Output zuverlässig.",
+            "alternatives": ["ministral-3:8b"],
         },
         # Code-nahe einfache Tasks
         "documentation": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Docstrings und Kommentare profitieren von Code-Verständnis — qwen2.5:7b empfohlen.",
-            "alternatives": ["qwen2.5:3b", "llama3.2"],
+            "model": "ministral-3:8b",
+            "reasoning": "Docstrings und Kommentare: ministral-3:8b hat gutes Code-Verständnis.",
+            "alternatives": ["gemma3:12b", "gemma3:4b"],
         },
         "code": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Selbst einfache Code-Tasks: qwen2.5:7b hat besseres Code-Verständnis als llama3.2.",
-            "alternatives": ["qwen2.5:3b", "mistral"],
+            "model": "ministral-3:8b",
+            "reasoning": "Einfache Code-Tasks: ministral-3:8b besser für Code als die 3B/4B Modelle.",
+            "alternatives": ["gemma3:12b", "ministral-3:14b"],
         },
         # Default für einfache Tasks ohne spezifische Kategorie
         "default": {
-            "model": "llama3.2",
+            "model": "gemma3:4b",
             "reasoning": "Standard für einfache Aufgaben: schnell, kostengünstig, ausreichend.",
-            "alternatives": ["qwen2.5:3b", "mistral"],
+            "alternatives": ["ministral-3:3b", "gemma3:12b"],
         },
     },
 
     # MITTLERE Tasks ────────────────────────────────────────────────────────
     "medium": {
         "test-generation": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Unit-Test-Generierung erfordert gutes Code-Verständnis — qwen2.5:7b stark hier.",
-            "alternatives": ["qwen2.5:14b", "mistral"],
+            "model": "ministral-3:8b",
+            "reasoning": "Unit-Test-Generierung: ministral-3:8b stark bei Code-Aufgaben.",
+            "alternatives": ["gemma3:12b", "ministral-3:14b"],
         },
         "code": {
-            "model": "qwen2.5:14b",
-            "reasoning": "Mittlere Code-Aufgaben (Refactoring, Review): qwen2.5:14b für bessere Qualität.",
-            "alternatives": ["qwen2.5:7b", "mistral"],
+            "model": "ministral-3:14b",
+            "reasoning": "Mittlere Code-Aufgaben (Refactoring, Review): ministral-3:14b für bessere Qualität.",
+            "alternatives": ["gemma3:27b", "ministral-3:8b"],
         },
         "documentation": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Technische Dokumentation (README, API-Docs): qwen2.5:7b ausgewogen.",
-            "alternatives": ["qwen2.5:14b", "mistral"],
+            "model": "gemma3:12b",
+            "reasoning": "Technische Dokumentation (README, API-Docs): gemma3:12b ausgewogen.",
+            "alternatives": ["ministral-3:8b", "ministral-3:14b"],
         },
         "user-stories": {
-            "model": "mistral",
-            "reasoning": "User Stories und Akzeptanzkriterien: Mistral liefert strukturierten Output.",
-            "alternatives": ["qwen2.5:7b", "llama3.2"],
+            "model": "ministral-3:8b",
+            "reasoning": "User Stories und Akzeptanzkriterien: Ministral liefert strukturierten Output.",
+            "alternatives": ["gemma3:12b", "gemma3:4b"],
         },
         "meeting-docs": {
-            "model": "mistral",
-            "reasoning": "Meeting-Agenden und RACI: Mistral gut für strukturierte Dokumente.",
-            "alternatives": ["qwen2.5:7b"],
+            "model": "ministral-3:8b",
+            "reasoning": "Meeting-Agenden und RACI: Ministral gut für strukturierte Dokumente.",
+            "alternatives": ["gemma3:12b"],
         },
         "risk-matrix": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Risikomatrizen erfordern strukturiertes Denken — qwen2.5:7b geeignet.",
-            "alternatives": ["mistral", "qwen2.5:14b"],
+            "model": "gemma3:12b",
+            "reasoning": "Risikomatrizen erfordern strukturiertes Denken — gemma3:12b geeignet.",
+            "alternatives": ["ministral-3:8b", "ministral-3:14b"],
         },
         # Default für mittlere Tasks
         "default": {
-            "model": "qwen2.5:7b",
-            "reasoning": "Mittlere Aufgaben: qwen2.5:7b bietet gute Balance aus Qualität und Geschwindigkeit.",
-            "alternatives": ["mistral", "qwen2.5:14b"],
+            "model": "gemma3:12b",
+            "reasoning": "Mittlere Aufgaben: gemma3:12b bietet gute Balance aus Qualität und Geschwindigkeit.",
+            "alternatives": ["ministral-3:8b", "ministral-3:14b"],
         },
     },
 }

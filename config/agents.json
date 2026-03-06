@@ -5,9 +5,9 @@
       "id": "ollama-cloud",
       "type": "openai-compatible",
       "name": "Ollama Cloud (gehostet, OpenAI-kompatibel)",
-      "api_base": "https://api.ollama.com/v1",
+      "api_base": "https://ollama.com/v1",
       "api_key_env": "OLLAMA_API_KEY",
-      "model": "llama3.2",
+      "model": "gemma3:4b",
       "max_tokens": 4096,
       "cost_tier": "very-low",
       "enabled": true,
@@ -21,7 +21,22 @@
         "summarization",
         "cloud-verfügbar",
         "kein-eigenes-hardware"
-      ]
+      ],
+      "_available_models": {
+        "small": [
+          "gemma3:4b",
+          "ministral-3:3b"
+        ],
+        "medium": [
+          "gemma3:12b",
+          "ministral-3:8b"
+        ],
+        "large": [
+          "gemma3:27b",
+          "ministral-3:14b",
+          "gpt-oss:20b"
+        ]
+      }
     },
     {
       "id": "gpt-4o-mini",
@@ -115,8 +130,20 @@
     }
   ],
   "routing_rules": {
-    "simple": ["ollama-cloud", "ollama-local", "groq-llama", "gpt-4o-mini", "gemini-flash"],
-    "medium": ["ollama-cloud", "gpt-4o-mini", "gemini-flash", "ollama-local", "opencode"],
+    "simple": [
+      "ollama-cloud",
+      "ollama-local",
+      "groq-llama",
+      "gpt-4o-mini",
+      "gemini-flash"
+    ],
+    "medium": [
+      "ollama-cloud",
+      "gpt-4o-mini",
+      "gemini-flash",
+      "ollama-local",
+      "opencode"
+    ],
     "complex": "claude-direct"
   },
   "defaults": {
