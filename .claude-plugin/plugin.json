@@ -1,0 +1,9 @@
+{
+  "name": "agent-delegator",
+  "version": "0.1.0",
+  "description": "Delegates simple and medium-complexity tasks to cheaper agents (OpenAI-compatible APIs, opencode CLI) and consolidates results — reducing token cost while keeping Claude focused on high-value reasoning.",
+  "author": {
+    "name": "Markus Werle"
+  },
+  "keywords": ["delegation", "multi-agent", "cost-optimization", "routing", "openai", "opencode"]
+}
