@@ -2,8 +2,8 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+# .env enthält API-Keys — niemals einchecken! Vorlage: .env.example
 .env
-.env.*
 *.plugin
 *.zip
 .DS_Store

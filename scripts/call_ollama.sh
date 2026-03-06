@@ -39,9 +39,28 @@
 
 set -euo pipefail
 
+# .env aus Plugin-Root laden (Elternverzeichnis dieses Skripts)
+PLUGIN_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -f "${PLUGIN_ROOT}/.env" ]]; then
+  while IFS= read -r _line || [[ -n "$_line" ]]; do
+    # Kommentare und Leerzeilen überspringen
+    [[ "$_line" =~ ^[[:space:]]*# ]] && continue
+    [[ -z "${_line// }" ]] && continue
+    # KEY=VALUE parsen, nur setzen wenn noch nicht in Umgebung
+    if [[ "$_line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+      _key="${BASH_REMATCH[1]}"
+      _val="${BASH_REMATCH[2]}"
+      # Anführungszeichen entfernen
+      _val="${_val%\"}" ; _val="${_val#\"}"
+      _val="${_val%\'}" ; _val="${_val#\'}"
+      [[ -z "${!_key:-}" ]] && export "$_key=$_val"
+    fi
+  done < "${PLUGIN_ROOT}/.env"
+fi
+
 OLLAMA_HOST="${OLLAMA_HOST:-http://localhost:11434}"
 OLLAMA_API_KEY="${OLLAMA_API_KEY:-}"
-MODEL="${OLLAMA_MODEL:-llama3.2}"
+MODEL="${OLLAMA_MODEL:-gemma3:4b}"
 PROMPT=""
 OUTPUT_FILE=""
 VERBOSE=false

@@ -32,6 +32,27 @@ import urllib.request
 import urllib.error
 
 
+def load_dotenv(script_dir: str) -> None:
+    """Lade .env aus dem Plugin-Root (Elternverzeichnis von scripts/).
+    Setzt nur Variablen, die noch nicht in der Umgebung gesetzt sind.
+    Unterstützt: KEY=VALUE, KEY="VALUE", KEY='VALUE', Kommentare (#), Leerzeilen.
+    """
+    plugin_root = os.path.dirname(script_dir)
+    env_path = os.path.join(plugin_root, ".env")
+    if not os.path.exists(env_path):
+        return
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            if key and key not in os.environ:
+                os.environ[key] = value
+
+
 def load_agent_config(config_path: str, agent_id: str) -> dict:
     """Load agent configuration from agents.json."""
     try:
@@ -105,6 +126,9 @@ def call_api(
 
 
 def main():
+    # .env aus Plugin-Root laden (vor allem anderen)
+    load_dotenv(os.path.dirname(os.path.abspath(__file__)))
+
     parser = argparse.ArgumentParser(
         description="Call an OpenAI-compatible API for task delegation."
     )
