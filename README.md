@@ -28,8 +28,7 @@ abgrenzbare Subtasks und prüft die Ergebnisse.
 
 | Komponente | Typ | Zweck |
 |-----------|-----|-------|
-| `task-router` | Skill | Komplexitätsbewertung und Routing-Entscheidung |
-| `result-consolidator` | Skill | Prüfung und Zusammenführung der Ergebnisse |
+| `agent-delegator` | Skill | Vollständiger Workflow: Analyse → Routing → Delegation → Konsolidierung |
 | `/delegate` | Command | Manuell einen Task delegieren |
 | `/delegate-config` | Command | Agenten konfigurieren und Status prüfen |
 
@@ -37,54 +36,74 @@ abgrenzbare Subtasks und prüft die Ergebnisse.
 
 | Agent | Typ | Kosten | Setup |
 |-------|-----|--------|-------|
-| **Ollama** | Lokal, kostenlos | Kostenlos | Ollama installieren + `ollama pull llama3.2` |
-| **GPT-4o-mini** | OpenAI API | ~$0.15/1M | `export OPENAI_API_KEY=...` |
-| **Gemini Flash** | Google API | ~$0.075/1M | `export GEMINI_API_KEY=...` |
-| **Groq (Llama)** | Groq API | ~$0.05/1M | `export GROQ_API_KEY=...` |
+| **Ollama Cloud** | API, pay-per-use | Günstig | API-Key in `.env` → `OLLAMA_API_KEY=...` |
+| **Ollama lokal** | Lokal, kostenlos | Kostenlos | Ollama installieren + Modell laden |
+| **GPT-4o-mini** | OpenAI API | ~$0.15/1M | `OPENAI_API_KEY=...` in `.env` |
+| **Gemini Flash** | Google API | ~$0.075/1M | `GEMINI_API_KEY=...` in `.env` |
+| **Groq (Llama)** | Groq API | ~$0.05/1M | `GROQ_API_KEY=...` in `.env` |
 | **opencode CLI** | Lokales CLI | Modell-abhängig | `npm install -g opencode-ai` |
 
 ## Setup
 
-### 1. Status prüfen
+### 1. API-Keys einrichten
+
+Kopiere `.env.example` zu `.env` und trage deine Keys ein:
+
+```bash
+cp .env.example .env
+# .env bearbeiten:
+OLLAMA_API_KEY=dein-key-hier
+# OPENAI_API_KEY=sk-...
+# GEMINI_API_KEY=...
+# GROQ_API_KEY=...
+```
+
+Die Scripts lesen `.env` automatisch — kein manuelles `export` nötig.
+
+### 2. Status prüfen
+
 ```bash
 python scripts/setup.py
 ```
 
-### 2. Ollama einrichten (empfohlen, kein API-Key nötig)
-```bash
-# Ollama installieren: https://ollama.ai
-ollama pull llama3.2          # Schnell, gut für einfache Tasks
-ollama pull qwen2.5:7b        # Besser für Code und Dokumente
-```
+### 3. Agenten aktivieren
 
-### 3. Cloud-Agenten einrichten (optional)
-```bash
-# OpenAI
-export OPENAI_API_KEY=sk-...
-# In config/agents.json: "enabled": true bei gpt-4o-mini
+Bearbeite `config/agents.json` und setze `"enabled": true` für gewünschte Agenten.
+Oder via Command:
 
-# Gemini (günstiger)
-export GEMINI_API_KEY=...
-# In config/agents.json: "enabled": true bei gemini-flash
-```
-
-### 4. Agenten aktivieren
 ```bash
-# Via Command:
 /delegate-config enable gpt-4o-mini
 /delegate-config enable gemini-flash
-/delegate-config disable ollama-local
 ```
 
-Oder direkt in `config/agents.json` editieren.
+### 4. Ollama lokal einrichten (optional, kein API-Key nötig)
+
+```bash
+# Ollama installieren: https://ollama.ai
+ollama pull gemma3:4b        # Schnell, gut für einfache Tasks
+ollama pull qwen2.5:7b       # Besser für Code und Dokumente
+```
+
+## Skill installieren
+
+Installiere `agent-delegator.skill` über Cowork — damit wird der vollständige
+Delegation-Workflow als ein einziger Skill in Claude verfügbar.
+
+Der Skill deckt den kompletten Ablauf ab:
+1. **Klassifizieren** — Complexity-Analyse via `task_classifier.py`
+2. **Routen** — Entscheidung: delegieren oder Claude direkt
+3. **Ausführen** — Delegation an gewählten Agenten
+4. **Konsolidieren** — Qualitätsprüfung und Zusammenführung der Ergebnisse
 
 ## Verwendung
 
-### Automatisch (via Skills)
-Claude verwendet den `task-router` Skill automatisch wenn Aufgaben
+### Automatisch (via Skill)
+
+Claude verwendet den `agent-delegator` Skill automatisch wenn Aufgaben
 in Subtasks aufgeteilt werden können. Das Routing passiert transparent.
 
 ### Manuell (/delegate Command)
+
 ```
 /delegate Formatiere diese Bullet-Points als Markdown-Tabelle: ...
 /delegate Übersetze diese User Story ins Englische: ...
@@ -93,23 +112,18 @@ in Subtasks aufgeteilt werden können. Das Routing passiert transparent.
 
 ### Direkter Skript-Aufruf (für Fortgeschrittene)
 
-**Ollama**:
+**Ollama** (Cloud oder lokal):
 ```bash
-bash scripts/call_ollama.sh --prompt "Deine Aufgabe hier" --model llama3.2
+bash scripts/call_ollama.sh --prompt "Deine Aufgabe" --model gemma3:4b
 bash scripts/call_ollama.sh --list-models
 ```
 
-**OpenAI-kompatibel**:
+**OpenAI-kompatibel** (GPT-4o-mini, Gemini, Groq, etc.):
 ```bash
 python scripts/call_openai.py \
   --agent-id gpt-4o-mini \
   --config config/agents.json \
-  --prompt "Deine Aufgabe hier"
-```
-
-**opencode**:
-```bash
-bash scripts/call_opencode.sh --prompt "Deine Code-Aufgabe"
+  --prompt "Deine Aufgabe"
 ```
 
 **Task-Klassifizierung**:
@@ -125,24 +139,14 @@ python scripts/task_classifier.py --task "Ist dieser Task delegierbar?" --pretty
 | **Mittel** | ✅ Ja (+ Review) | GPT-4o-mini → Gemini → opencode |
 | **Komplex** | ❌ Nein | Claude direkt |
 
-### Als einfach klassifiziert (Beispiele)
-- Textformatierung, Markdown-Konvertierung
-- Übersetzungen
-- Template-Befüllung
-- Changelog/Meeting-Protokoll strukturieren
-- Regex und Datenextraktion
+**Einfach (Beispiele):** Textformatierung, Übersetzung, Template-Befüllung,
+Codekommentare / Docstrings, Changelog strukturieren, Meeting-Protokoll.
 
-### Als mittel klassifiziert (Beispiele)
-- User Stories und Akzeptanzkriterien
-- Unit-Test-Generierung
-- Code-Dokumentation
-- RACI-Matrix und Meeting-Agenden
+**Mittel (Beispiele):** User Stories, Unit-Test-Generierung, Code-Dokumentation,
+RACI-Matrix, Meeting-Agenden, Risiko-Templates.
 
-### Immer Claude direkt
-- Architekturentscheidungen
-- Risikoanalysen und Strategien
-- Sicherheits- und Compliance-Prüfungen
-- Stakeholder-Kommunikation auf Führungsebene
+**Komplex (immer Claude):** Architekturentscheidungen, Risikoanalysen,
+Stakeholder-Kommunikation, Sicherheits- und Compliance-Prüfungen.
 
 ## Konfiguration
 
@@ -156,8 +160,8 @@ können über `type: "openai-compatible"` hinzugefügt werden.
 
 | Skript | Beschreibung |
 |--------|-------------|
+| `scripts/task_classifier.py` | Task-Komplexität analysieren + Modell empfehlen |
 | `scripts/call_openai.py` | OpenAI-kompatible API aufrufen |
-| `scripts/call_ollama.sh` | Ollama (lokal) aufrufen |
+| `scripts/call_ollama.sh` | Ollama (Cloud oder lokal) aufrufen |
 | `scripts/call_opencode.sh` | opencode CLI aufrufen |
-| `scripts/task_classifier.py` | Task-Komplexität analysieren |
 | `scripts/setup.py` | Installation und Status prüfen |
