@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.3.0
+version: 0.4.0
 ---
 
 # Agent Delegator
@@ -73,6 +73,7 @@ echo "API-Keys Status:"
 [[ -n "$OPENAI_API_KEY"  ]] && echo "  ✅ OPENAI_API_KEY  (${#OPENAI_API_KEY} Zeichen)" || echo "  ❌ OPENAI_API_KEY  nicht gesetzt"
 [[ -n "$GEMINI_API_KEY"  ]] && echo "  ✅ GEMINI_API_KEY  (${#GEMINI_API_KEY} Zeichen)" || echo "  ❌ GEMINI_API_KEY  nicht gesetzt"
 [[ -n "$GROQ_API_KEY"    ]] && echo "  ✅ GROQ_API_KEY    (${#GROQ_API_KEY} Zeichen)" || echo "  ❌ GROQ_API_KEY    nicht gesetzt"
+[[ -n "$OPENROUTER_API_KEY" ]] && echo "  ✅ OPENROUTER_API_KEY (${#OPENROUTER_API_KEY} Zeichen)" || echo "  ❌ OPENROUTER_API_KEY nicht gesetzt"
 ```
 
 Falls kein Key gefunden: User fragen welchen Provider er nutzen möchte,
@@ -116,6 +117,8 @@ strategische Roadmaps, Change Management, mehrstufiges Debugging.
 - **Ollama gemma3:12b** — Besser für Code, Dokumentation, strukturierte Ausgaben
 - **gpt-4o-mini** — Wenn Ollama nicht verfügbar, gute Allround-Option
 - **Groq Llama** — Sehr schnell, günstig, für repetitive Tasks
+- **OpenRouter (free tier)** — Kostenlos, 300+ Modelle, ideal zum Ausprobieren
+- **OpenRouter Llama/Mistral** — Günstig, breite Modellauswahl, ein einziger API-Key
 
 ---
 
@@ -220,6 +223,58 @@ print(json.load(sys.stdin)['message']['content'])
 " > /tmp/delegate_result.txt
 
 cat /tmp/delegate_result.txt
+```
+
+### Option E — OpenRouter (300+ Modelle, inkl. kostenlose)
+
+OpenRouter gibt Zugang zu über 300 Modellen mit einem einzigen API-Key.
+Kostenlose Tier-Modelle: `google/gemma-3-4b-it:free`, `meta-llama/llama-3.1-8b-instruct:free`, `mistralai/mistral-7b-instruct:free`
+
+```bash
+# .env laden (falls noch nicht geschehen)
+[[ -z "$OPENROUTER_API_KEY" ]] && for _p in $(find /sessions ~/.local-plugins -name '.env' -path '*agent-delegator*' 2>/dev/null); do source "$_p" && break; done
+
+MODEL="google/gemma-3-4b-it:free"   # kostenlos — oder: meta-llama/llama-3.1-8b-instruct:free
+# Günstige Alternativen:              mistralai/mistral-small-3.1-24b-instruct | qwen/qwen-2.5-72b-instruct
+PROMPT="AUFGABE HIER"
+
+RESPONSE=$(curl -sfL \
+  --max-time 120 \
+  -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -H "HTTP-Referer: https://github.com/ydmw74/agent-delegator" \
+  -H "X-Title: Agent Delegator" \
+  -d "$(python3 -c "
+import json, sys
+print(json.dumps({
+  'model': sys.argv[1],
+  'messages': [
+    {'role': 'system', 'content': 'Du bist ein präziser Assistent. Erledige die Aufgabe genau. Antworte nur mit dem Ergebnis.'},
+    {'role': 'user', 'content': sys.argv[2]}
+  ],
+  'temperature': 0.3, 'max_tokens': 4096
+}))" "$MODEL" "$PROMPT")" \
+  "https://openrouter.ai/api/v1/chat/completions")
+
+echo "$RESPONSE" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+print(data['choices'][0]['message']['content'])
+" > /tmp/delegate_result.txt
+
+cat /tmp/delegate_result.txt
+```
+
+**Verfügbare kostenlose OpenRouter-Modelle anzeigen:**
+```bash
+curl -sfL -H "Authorization: Bearer ${OPENROUTER_API_KEY}" \
+  "https://openrouter.ai/api/v1/models" | python3 -c "
+import json, sys
+models = json.load(sys.stdin).get('data', [])
+free = [m for m in models if ':free' in m.get('id', '') or m.get('pricing', {}).get('prompt') == '0']
+for m in sorted(free, key=lambda x: x['id']):
+    print(m['id'])
+"
 ```
 
 ### Option D — Mehrere Subtasks parallel

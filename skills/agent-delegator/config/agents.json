@@ -114,6 +114,54 @@
       ]
     },
     {
+      "id": "openrouter",
+      "type": "openai-compatible",
+      "name": "OpenRouter (Modell-Aggregator, 300+ Modelle)",
+      "api_base": "https://openrouter.ai/api/v1",
+      "api_key_env": "OPENROUTER_API_KEY",
+      "model": "google/gemma-3-4b-it:free",
+      "max_tokens": 4096,
+      "cost_tier": "very-low",
+      "enabled": true,
+      "_note": "API-Key: https://openrouter.ai → Keys. Zugang zu 300+ Modellen incl. kostenlose Tier-Modelle.",
+      "_extra_headers": {
+        "HTTP-Referer": "https://github.com/ydmw74/agent-delegator",
+        "X-Title": "Agent Delegator"
+      },
+      "_available_models": {
+        "free": [
+          "google/gemma-3-4b-it:free",
+          "google/gemma-3-12b-it:free",
+          "meta-llama/llama-3.1-8b-instruct:free",
+          "mistralai/mistral-7b-instruct:free",
+          "qwen/qwen-2.5-7b-instruct:free"
+        ],
+        "low-cost": [
+          "google/gemma-3-27b-it",
+          "meta-llama/llama-3.1-70b-instruct",
+          "mistralai/mistral-small-3.1-24b-instruct",
+          "qwen/qwen-2.5-72b-instruct"
+        ],
+        "mid-range": [
+          "anthropic/claude-haiku-4-5",
+          "openai/gpt-4o-mini",
+          "google/gemini-flash-1.5"
+        ]
+      },
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "simple-qa",
+        "template-filling",
+        "summarization",
+        "translation",
+        "code-completion",
+        "documentation",
+        "modell-vielfalt",
+        "kostenlose-modelle"
+      ]
+    },
+    {
       "id": "opencode",
       "type": "opencode-cli",
       "name": "opencode CLI",
@@ -132,6 +180,7 @@
   "routing_rules": {
     "simple": [
       "ollama-cloud",
+      "openrouter",
       "ollama-local",
       "groq-llama",
       "gpt-4o-mini",
@@ -139,6 +188,7 @@
     ],
     "medium": [
       "ollama-cloud",
+      "openrouter",
       "gpt-4o-mini",
       "gemini-flash",
       "ollama-local",
