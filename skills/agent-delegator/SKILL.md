@@ -40,29 +40,60 @@ Aufgabe
                          Ergebnis an User
 ```
 
-## Setup
+---
 
-Dieser Skill ist self-contained. Beim Laden siehst du oben:
-`Base directory for this skill: /pfad/zum/skill`
+## Pfad-Setup
 
-Setze diesen Pfad als `SKILL_DIR` für alle folgenden Befehle:
+Beim Laden dieses Skills siehst du oben: `Base directory for this skill: /pfad/zum/skill`
 
+Setze diesen Pfad für alle Befehle:
 ```bash
-SKILL_DIR="/pfad/zum/skill"   # <── aus "Base directory for this skill:" oben ersetzen
+SKILL_DIR="/pfad/zum/skill"   # <── ersetze durch den Pfad oben
 ```
 
-**Erster Lauf — Status prüfen:**
+---
+
+## Erstkonfiguration (einmalig)
+
+Beim ersten Einsatz prüfe zuerst den Status:
+
 ```bash
 python "$SKILL_DIR/scripts/setup.py"
 ```
 
-**API-Keys einrichten** (einmalig):
+Falls `.env` fehlt oder keine Agenten aktiv sind, führe Claude durch die Konfiguration:
+
+### API-Keys einrichten
+
+1. Claude liest die Vorlage:
 ```bash
-cp "$SKILL_DIR/.env.example" "$SKILL_DIR/.env"
-# .env bearbeiten und Keys eintragen
+cat "$SKILL_DIR/.env.example"
 ```
 
-Die Scripts lesen `.env` automatisch — kein manuelles `export` nötig.
+2. Claude erstellt `.env` aus der Vorlage und fragt den User nach seinen Keys:
+```bash
+cp "$SKILL_DIR/.env.example" "$SKILL_DIR/.env"
+```
+
+3. Claude trägt die Keys direkt in die Datei ein (der User nennt sie im Chat):
+```bash
+# Claude editiert $SKILL_DIR/.env mit den genannten Keys
+# Beispiel für Ollama Cloud:
+# OLLAMA_API_KEY=928baa...
+```
+
+4. Status nochmals prüfen — sollte jetzt grün sein:
+```bash
+python "$SKILL_DIR/scripts/setup.py"
+```
+
+### Agenten aktivieren/deaktivieren
+
+Direkt in der Konfigurationsdatei:
+```bash
+cat "$SKILL_DIR/config/agents.json"   # zeigen
+# Claude setzt "enabled": true/false für gewünschte Agenten
+```
 
 ---
 
