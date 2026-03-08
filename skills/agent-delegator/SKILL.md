@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.2.0
+version: 0.3.0
 ---
 
 # Agent Delegator
@@ -40,140 +40,205 @@ Aufgabe
                          Ergebnis an User
 ```
 
----
-
-## Pfad-Setup
-
-Beim Laden dieses Skills siehst du oben: `Base directory for this skill: /pfad/zum/skill`
-
-Setze diesen Pfad für alle Befehle:
-```bash
-SKILL_DIR="/pfad/zum/skill"   # <── ersetze durch den Pfad oben
-```
+> **Hinweis:** Dieser Skill funktioniert vollständig ohne externe Scripts.
+> Alle Logik ist in diesen Anweisungen eingebettet.
 
 ---
 
-## Erstkonfiguration (einmalig)
+## Setup: API-Keys finden
 
-Beim ersten Einsatz prüfe zuerst den Status:
+Beim Start diesen Block ausführen — er sucht .env automatisch in bekannten Pfaden:
 
 ```bash
-python "$SKILL_DIR/scripts/setup.py"
+# .env automatisch suchen und laden
+_env_loaded=false
+for _p in \
+  "$SKILL_DIR/.env" \
+  "$(find /sessions -maxdepth 8 -name '.env' -path '*/agent-delegator*' 2>/dev/null | head -1)" \
+  "$(find ~/.skills ~/.local-plugins -name '.env' 2>/dev/null | head -1)"
+do
+  if [[ -f "$_p" ]]; then
+    set -a && source "$_p" && set +a
+    echo "✅ .env geladen: $_p"
+    _env_loaded=true
+    break
+  fi
+done
+[[ "$_env_loaded" == false ]] && echo "⚠️  Keine .env gefunden — API-Keys müssen manuell gesetzt werden."
+
+# Status ausgeben
+echo ""
+echo "API-Keys Status:"
+[[ -n "$OLLAMA_API_KEY"  ]] && echo "  ✅ OLLAMA_API_KEY  (${#OLLAMA_API_KEY} Zeichen)" || echo "  ❌ OLLAMA_API_KEY  nicht gesetzt"
+[[ -n "$OPENAI_API_KEY"  ]] && echo "  ✅ OPENAI_API_KEY  (${#OPENAI_API_KEY} Zeichen)" || echo "  ❌ OPENAI_API_KEY  nicht gesetzt"
+[[ -n "$GEMINI_API_KEY"  ]] && echo "  ✅ GEMINI_API_KEY  (${#GEMINI_API_KEY} Zeichen)" || echo "  ❌ GEMINI_API_KEY  nicht gesetzt"
+[[ -n "$GROQ_API_KEY"    ]] && echo "  ✅ GROQ_API_KEY    (${#GROQ_API_KEY} Zeichen)" || echo "  ❌ GROQ_API_KEY    nicht gesetzt"
 ```
 
-Falls `.env` fehlt oder keine Agenten aktiv sind, führe Claude durch die Konfiguration:
-
-### API-Keys einrichten
-
-1. Claude liest die Vorlage:
+Falls kein Key gefunden: User fragen welchen Provider er nutzen möchte,
+und Key im Chat nennen lassen. Dann direkt als env-Variable exportieren:
 ```bash
-cat "$SKILL_DIR/.env.example"
-```
-
-2. Claude erstellt `.env` aus der Vorlage und fragt den User nach seinen Keys:
-```bash
-cp "$SKILL_DIR/.env.example" "$SKILL_DIR/.env"
-```
-
-3. Claude trägt die Keys direkt in die Datei ein (der User nennt sie im Chat):
-```bash
-# Claude editiert $SKILL_DIR/.env mit den genannten Keys
-# Beispiel für Ollama Cloud:
-# OLLAMA_API_KEY=928baa...
-```
-
-4. Status nochmals prüfen — sollte jetzt grün sein:
-```bash
-python "$SKILL_DIR/scripts/setup.py"
-```
-
-### Agenten aktivieren/deaktivieren
-
-Direkt in der Konfigurationsdatei:
-```bash
-cat "$SKILL_DIR/config/agents.json"   # zeigen
-# Claude setzt "enabled": true/false für gewünschte Agenten
+export OLLAMA_API_KEY="key-hier"   # Beispiel
 ```
 
 ---
 
-## Phase 1: Task klassifizieren
+## Phase 1: Task klassifizieren (Claude-Reasoning)
 
-```bash
-python "$SKILL_DIR/scripts/task_classifier.py" \
-  --task "TASK-BESCHREIBUNG HIER" \
-  --config "$SKILL_DIR/config/agents.json" \
-  --pretty
-```
+**Kein Script nötig.** Claude bewertet den Task nach diesen Kriterien:
 
-Das JSON enthält:
-- `complexity`: `simple` | `medium` | `complex`
-- `delegate`: `true` | `false`
-- `recommended_agents`: empfohlene Agenten-IDs
-- `recommended_model`: bestes Modell für diesen Task (z.B. `gemma3:4b`)
-- `model_reasoning`: Begründung der Modellwahl
-- `model_alternatives`: Fallbacks
-- `fine_categories`: erkannte Kategorien (z.B. `["code", "documentation"]`)
-- `warnings`: Hinweise bei sicherheitsrelevanten Keywords
+### Komplexitäts-Rubrik
 
-### Wann delegieren?
+| Kriterium | EINFACH → delegieren | MITTEL → delegieren + prüfen | KOMPLEX → Claude direkt |
+|-----------|---------------------|------------------------------|------------------------|
+| Reasoning | Keine Schlussfolgerungen | Begrenzte Schlussfolgerungen | Mehrstufige Analyse |
+| Kontext | Self-contained, wenig Kontext | Mäßig kontextabhängig | Tiefer Projekt-Kontext |
+| Fehlerfolgen | Leicht korrigierbar | Korrigierbar mit Aufwand | Schwer rückgängig |
+| Kreativität | Formatierung, Transformation | Template, Strukturierung | Strategische Entscheidung |
 
-**EINFACH → sicher delegieren**
-Textformatierung, Übersetzung, Template-Befüllung, Codekommentare / Docstrings,
+### EINFACH → sicher delegieren
+Textformatierung, Übersetzung, Template-Befüllung, Codekommentare/Docstrings,
 Changelog aus Commit-Messages, Meeting-Protokoll aus Stichpunkten,
-Datums- und Zeitformatierung, einfache Zusammenfassungen.
+Datums-/Zeitformatierung, einfache Zusammenfassungen, Tabellenkonvertierung.
 
-**MITTEL → delegieren mit anschließender Prüfung**
-Unit-Test-Generierung, einfache Code-Reviews, README / API-Dokumentation,
+### MITTEL → delegieren mit anschließender Prüfung
+Unit-Test-Generierung, einfache Code-Reviews, README/API-Dokumentation,
 User Stories aus Feature-Briefings, RACI-Matrix-Entwürfe, Meeting-Agenden,
 Risiko-Templates befüllen.
 
-**KOMPLEX → Claude direkt**
+### KOMPLEX → Claude direkt (nicht delegieren)
 Architektur- und Technologieentscheidungen, Risikoanalyse und -bewertung,
-Stakeholder-Kommunikation, Sicherheits- und Compliance-Prüfungen,
+Stakeholder-Kommunikation, Sicherheits-/Compliance-Prüfungen,
 strategische Roadmaps, Change Management, mehrstufiges Debugging.
+
+### Modell-Empfehlung
+- **Ollama gemma3:4b** — Schnell, gut für Formatierung, Übersetzung, einfache Umwandlungen
+- **Ollama gemma3:12b** — Besser für Code, Dokumentation, strukturierte Ausgaben
+- **gpt-4o-mini** — Wenn Ollama nicht verfügbar, gute Allround-Option
+- **Groq Llama** — Sehr schnell, günstig, für repetitive Tasks
 
 ---
 
 ## Phase 2: Delegation ausführen
 
-### Option A: OpenAI-kompatible API (GPT-4o-mini, Gemini Flash, Groq, etc.)
+### Option A — Ollama Cloud (empfohlen wenn OLLAMA_API_KEY gesetzt)
 
 ```bash
-python "$SKILL_DIR/scripts/call_openai.py" \
-  --agent-id gpt-4o-mini \
-  --config "$SKILL_DIR/config/agents.json" \
-  --prompt "AUFGABE HIER" \
-  --output-file /tmp/delegate_result.txt \
-  --verbose
+# .env laden (falls noch nicht geschehen)
+[[ -f "$SKILL_DIR/.env" ]] && set -a && source "$SKILL_DIR/.env" && set +a
+[[ -z "$OLLAMA_API_KEY" ]] && for _p in $(find /sessions ~/.local-plugins -name '.env' -path '*agent-delegator*' 2>/dev/null); do source "$_p" && break; done
+
+MODEL="gemma3:4b"   # oder gemma3:12b für komplexere Tasks
+PROMPT="AUFGABE HIER"
+
+RESPONSE=$(curl -sfL \
+  --max-time 120 \
+  -H "Authorization: Bearer ${OLLAMA_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "$(python3 -c "
+import json, sys
+print(json.dumps({
+  'model': sys.argv[1],
+  'messages': [
+    {'role': 'system', 'content': 'Du bist ein präziser Assistent. Erledige die Aufgabe genau. Antworte nur mit dem Ergebnis.'},
+    {'role': 'user', 'content': sys.argv[2]}
+  ],
+  'temperature': 0.3, 'max_tokens': 4096, 'stream': False
+}))" "$MODEL" "$PROMPT")" \
+  "https://ollama.com/v1/chat/completions")
+
+echo "$RESPONSE" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+print(data['choices'][0]['message']['content'])
+" > /tmp/delegate_result.txt
+
+cat /tmp/delegate_result.txt
 ```
 
-### Option B: Ollama (Cloud oder lokal) — mit automatischer Modell-Wahl
-
+**Verfügbare Ollama-Modelle anzeigen:**
 ```bash
-bash "$SKILL_DIR/scripts/call_ollama.sh" \
-  --prompt "AUFGABE HIER" \
-  --model RECOMMENDED_MODEL \
-  --output-file /tmp/delegate_result.txt \
-  --verbose
-
-# Verfügbare Modelle prüfen:
-bash "$SKILL_DIR/scripts/call_ollama.sh" --list-models
+curl -sfL -H "Authorization: Bearer ${OLLAMA_API_KEY}" \
+  "https://ollama.com/v1/models" | python3 -c "
+import json, sys
+for m in json.load(sys.stdin).get('data', []):
+    print(m['id'])
+" | sort
 ```
 
-### Option C: Mehrere Subtasks parallel
+### Option B — OpenAI-kompatible API (GPT-4o-mini, Gemini Flash, Groq)
 
 ```bash
-python "$SKILL_DIR/scripts/call_openai.py" \
-  --agent-id gpt-4o-mini --prompt "Subtask 1: ..." \
-  --output-file /tmp/result_1.txt &
+# Konfiguration pro Agent:
+# GPT-4o-mini:   BASE_URL="https://api.openai.com/v1"      API_KEY="$OPENAI_API_KEY"  MODEL="gpt-4o-mini"
+# Gemini Flash:  BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai"  API_KEY="$GEMINI_API_KEY"  MODEL="gemini-2.0-flash"
+# Groq Llama:    BASE_URL="https://api.groq.com/openai/v1"  API_KEY="$GROQ_API_KEY"    MODEL="llama-3.1-8b-instant"
 
-python "$SKILL_DIR/scripts/call_openai.py" \
-  --agent-id gpt-4o-mini --prompt "Subtask 2: ..." \
-  --output-file /tmp/result_2.txt &
+BASE_URL="https://api.openai.com/v1"
+API_KEY="$OPENAI_API_KEY"
+MODEL="gpt-4o-mini"
+PROMPT="AUFGABE HIER"
 
+curl -sfL --max-time 120 \
+  -H "Authorization: Bearer ${API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "$(python3 -c "
+import json, sys
+print(json.dumps({
+  'model': sys.argv[1],
+  'messages': [{'role': 'user', 'content': sys.argv[2]}],
+  'temperature': 0.3
+}))" "$MODEL" "$PROMPT")" \
+  "${BASE_URL}/chat/completions" \
+  | python3 -c "
+import json, sys
+print(json.load(sys.stdin)['choices'][0]['message']['content'])
+" > /tmp/delegate_result.txt
+
+cat /tmp/delegate_result.txt
+```
+
+### Option C — Lokales Ollama (kein API-Key nötig)
+
+```bash
+PROMPT="AUFGABE HIER"
+MODEL="gemma3:4b"
+
+curl -sf --max-time 120 \
+  -H "Content-Type: application/json" \
+  -d "$(python3 -c "
+import json, sys
+print(json.dumps({
+  'model': sys.argv[1],
+  'messages': [{'role': 'user', 'content': sys.argv[2]}],
+  'stream': False
+}))" "$MODEL" "$PROMPT")" \
+  "http://localhost:11434/api/chat" \
+  | python3 -c "
+import json, sys
+print(json.load(sys.stdin)['message']['content'])
+" > /tmp/delegate_result.txt
+
+cat /tmp/delegate_result.txt
+```
+
+### Option D — Mehrere Subtasks parallel
+
+```bash
+# Subtasks parallel ausführen (Ollama Cloud Beispiel):
+for i in 1 2 3; do
+  PROMPT_VAR="SUBTASK_$i"  # Prompt pro Subtask setzen
+  ( curl -sfL --max-time 120 \
+      -H "Authorization: Bearer ${OLLAMA_API_KEY}" \
+      -H "Content-Type: application/json" \
+      -d "$(python3 -c "import json,sys; print(json.dumps({'model':'gemma3:4b','messages':[{'role':'user','content':sys.argv[1]}],'stream':False}))" "$PROMPT_VAR")" \
+      "https://ollama.com/v1/chat/completions" \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)['choices'][0]['message']['content'])" \
+    > "/tmp/result_${i}.txt"
+  ) &
+done
 wait
-cat /tmp/result_1.txt /tmp/result_2.txt
+for f in /tmp/result_*.txt; do echo "=== $f ==="; cat "$f"; echo; done
 ```
 
 ---
@@ -182,8 +247,6 @@ cat /tmp/result_1.txt /tmp/result_2.txt
 
 ```bash
 cat /tmp/delegate_result.txt
-# oder bei mehreren:
-for f in /tmp/result_*.txt; do echo "=== $f ==="; cat "$f"; echo; done
 ```
 
 Beurteile nach vier Kriterien:
@@ -213,10 +276,3 @@ Kurz erwähnen wenn delegiert wurde — besonders bei Korrekturen:
 - *"Das Protokoll wurde von einem Hilfsmodell strukturiert; ich habe zwei Fehler korrigiert."*
 
 Nicht erwähnen wenn das Ergebnis direkt und ohne Korrekturen übernommen wurde.
-
----
-
-## Referenzen
-
-- `references/agent-capabilities.md` — Stärken, Grenzen und Kosten jedes Agenten
-- `references/consolidation-patterns.md` — Prüfkriterien und Beispiele nach Aufgabentyp
