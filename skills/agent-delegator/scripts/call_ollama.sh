@@ -11,7 +11,7 @@
 #
 # Ollama Cloud:
 #   export OLLAMA_API_KEY=ollama_...   # von https://ollama.com/settings/keys
-#   export OLLAMA_HOST=https://api.ollama.com
+#   export OLLAMA_HOST=https://ollama.com
 #   ./call_ollama.sh --prompt "..." --model llama3.2
 #
 # Eigene Cloud-Instanz:
@@ -102,9 +102,9 @@ fi
 
 curl_with_auth() {
   if [[ -n "$OLLAMA_API_KEY" ]]; then
-    curl -sf -H "Authorization: Bearer ${OLLAMA_API_KEY}" "$@"
+    curl -sfL -H "Authorization: Bearer ${OLLAMA_API_KEY}" "$@"
   else
-    curl -sf "$@"
+    curl -sfL "$@"
   fi
 }
 
@@ -123,7 +123,7 @@ check_reachable() {
       echo "Lösung:" >&2
       echo "  1. API-Key prüfen: export OLLAMA_API_KEY=ollama_..." >&2
       echo "  2. API-Keys verwalten: https://ollama.com/settings/keys" >&2
-      echo "  3. Host prüfen: export OLLAMA_HOST=https://api.ollama.com" >&2
+      echo "  3. Host prüfen: export OLLAMA_HOST=https://ollama.com" >&2
     else
       echo "Error: Ollama nicht erreichbar unter ${OLLAMA_HOST}" >&2
       echo "" >&2
@@ -206,11 +206,17 @@ print(json.dumps({
   ENDPOINT="${OLLAMA_HOST}/v1/chat/completions"
 
   RESPONSE=$(
-    timeout "$TIMEOUT_SECS" curl_with_auth \
+    curl_with_auth \
+      --max-time "$TIMEOUT_SECS" \
       -X POST "$ENDPOINT" \
       -H "Content-Type: application/json" \
       -d "$PAYLOAD"
-  ) || { handle_timeout_or_error "$?"; exit 1; }
+  ) || {
+    EXIT_CODE=$?
+    [[ $EXIT_CODE -eq 28 ]] && echo "Error: Timeout nach ${TIMEOUT_SECS}s — kleineres Modell wählen (z.B. gemma3:4b)" >&2 \
+      || echo "Error: Ollama Cloud API-Aufruf fehlgeschlagen (Exit $EXIT_CODE) — API-Key und Host prüfen" >&2
+    exit 1
+  }
 
   RESULT=$(echo "$RESPONSE" | python3 -c "
 import json, sys
