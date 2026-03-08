@@ -1,0 +1,155 @@
+{
+  "_comment": "Agent Delegator Configuration — edit this file to enable/disable agents and set API keys",
+  "agents": [
+    {
+      "id": "ollama-cloud",
+      "type": "openai-compatible",
+      "name": "Ollama Cloud (gehostet, OpenAI-kompatibel)",
+      "api_base": "https://ollama.com/v1",
+      "api_key_env": "OLLAMA_API_KEY",
+      "model": "gemma3:4b",
+      "max_tokens": 4096,
+      "cost_tier": "very-low",
+      "enabled": true,
+      "_note": "Standard-Agent. API-Key: https://ollama.com → Account → API Keys. export OLLAMA_API_KEY=...",
+      "_url_override": "Eigene Cloud-Instanz: OLLAMA_CLOUD_URL=https://dein-server.com/v1 setzen und api_base anpassen",
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "simple-qa",
+        "template-filling",
+        "summarization",
+        "cloud-verfügbar",
+        "kein-eigenes-hardware"
+      ],
+      "_available_models": {
+        "small": [
+          "gemma3:4b",
+          "ministral-3:3b"
+        ],
+        "medium": [
+          "gemma3:12b",
+          "ministral-3:8b"
+        ],
+        "large": [
+          "gemma3:27b",
+          "ministral-3:14b",
+          "gpt-oss:20b"
+        ]
+      }
+    },
+    {
+      "id": "gpt-4o-mini",
+      "type": "openai-compatible",
+      "name": "GPT-4o Mini (OpenAI)",
+      "api_base": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "model": "gpt-4o-mini",
+      "max_tokens": 4096,
+      "cost_tier": "low",
+      "enabled": true,
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "code-completion",
+        "documentation",
+        "translation",
+        "summarization",
+        "template-filling",
+        "regex-parsing"
+      ]
+    },
+    {
+      "id": "gemini-flash",
+      "type": "openai-compatible",
+      "name": "Gemini 2.0 Flash (Google)",
+      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "api_key_env": "GEMINI_API_KEY",
+      "model": "gemini-2.0-flash",
+      "max_tokens": 8192,
+      "cost_tier": "low",
+      "enabled": false,
+      "strengths": [
+        "text-transformation",
+        "long-context",
+        "code-completion",
+        "documentation",
+        "translation",
+        "summarization"
+      ]
+    },
+    {
+      "id": "groq-llama",
+      "type": "openai-compatible",
+      "name": "Llama 3.1 8B (Groq — sehr schnell, sehr günstig)",
+      "api_base": "https://api.groq.com/openai/v1",
+      "api_key_env": "GROQ_API_KEY",
+      "model": "llama-3.1-8b-instant",
+      "max_tokens": 4096,
+      "cost_tier": "very-low",
+      "enabled": false,
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "simple-qa",
+        "template-filling"
+      ]
+    },
+    {
+      "id": "ollama-local",
+      "type": "ollama",
+      "name": "Lokales Modell via Ollama (kein API-Key nötig, kostenlos, offline)",
+      "api_base": "http://localhost:11434",
+      "model": "llama3.2",
+      "max_tokens": 4096,
+      "cost_tier": "free",
+      "enabled": true,
+      "_note": "Aktiviert sobald Ollama läuft. Modell laden: ollama pull llama3.2",
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "simple-qa",
+        "offline",
+        "datenschutz"
+      ]
+    },
+    {
+      "id": "opencode",
+      "type": "opencode-cli",
+      "name": "opencode CLI",
+      "model": "claude-haiku-4-5-20251001",
+      "cost_tier": "low",
+      "enabled": false,
+      "strengths": [
+        "code-generation",
+        "code-review",
+        "refactoring",
+        "debugging",
+        "file-operations"
+      ]
+    }
+  ],
+  "routing_rules": {
+    "simple": [
+      "ollama-cloud",
+      "ollama-local",
+      "groq-llama",
+      "gpt-4o-mini",
+      "gemini-flash"
+    ],
+    "medium": [
+      "ollama-cloud",
+      "gpt-4o-mini",
+      "gemini-flash",
+      "ollama-local",
+      "opencode"
+    ],
+    "complex": "claude-direct"
+  },
+  "defaults": {
+    "timeout_seconds": 60,
+    "retry_on_error": true,
+    "max_retries": 2,
+    "fallback_to_claude": true
+  }
+}
