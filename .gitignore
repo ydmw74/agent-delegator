@@ -5,6 +5,9 @@ __pycache__/
 # .env enthält API-Keys — niemals einchecken! Vorlage: .env.example
 .env
 *.plugin
+# Distribution archives (explizit erlaubt):
 *.zip
+!agent-delegator.zip
+!agent-delegator.skill
 .DS_Store
 /tmp/

@@ -84,10 +84,40 @@ ollama pull gemma3:4b        # Schnell, gut für einfache Tasks
 ollama pull qwen2.5:7b       # Besser für Code und Dokumente
 ```
 
-## Skill installieren
+## Installation
 
-Installiere `agent-delegator.skill` über Cowork — damit wird der vollständige
-Delegation-Workflow als ein einziger Skill in Claude verfügbar.
+Es gibt zwei Wege, den Skill zu installieren:
+
+### Option A — `.skill` Datei (empfohlen)
+
+Lade `agent-delegator.skill` in Cowork. Der Skill wird automatisch
+installiert und steht Claude direkt zur Verfügung.
+
+> **Hinweis zur Konfiguration:** Das `.skills`-Verzeichnis in Cowork ist
+> schreibgeschützt. API-Keys können dort nicht direkt eingetragen werden.
+> Verwende in diesem Fall **Option B** für die Konfiguration.
+
+### Option B — `.zip` Datei (für API-Key-Konfiguration)
+
+Lade `agent-delegator.zip` herunter und entpacke sie in einen Ordner deiner
+Wahl (z.B. `~/Documents/agent-delegator/`). Dort hast du vollen Schreibzugriff
+und kannst die `.env` Datei mit deinen API-Keys befüllen:
+
+```bash
+# Entpacken (Beispiel macOS/Linux):
+unzip agent-delegator.zip -d ~/Documents/
+
+# .env anlegen und Keys eintragen:
+cd ~/Documents/agent-delegator
+cp .env.example .env
+# .env bearbeiten und OLLAMA_API_KEY, OPENAI_API_KEY etc. eintragen
+
+# Setup prüfen:
+python scripts/setup.py
+```
+
+Öffne den Ordner danach in Cowork als Arbeitsordner — Claude findet die
+`.env` automatisch über den `$SKILL_DIR` Pfad.
 
 Der Skill deckt den kompletten Ablauf ab:
 1. **Klassifizieren** — Complexity-Analyse via `task_classifier.py`
