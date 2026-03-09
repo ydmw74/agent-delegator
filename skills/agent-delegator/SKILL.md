@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.4.0
+version: 0.5.0
 ---
 
 # Agent Delegator
@@ -69,6 +69,7 @@ done
 # Status ausgeben
 echo ""
 echo "API-Keys Status:"
+[[ -n "$INCEPTION_API_KEY" ]] && echo "  ✅ INCEPTION_API_KEY (${#INCEPTION_API_KEY} Zeichen)" || echo "  ❌ INCEPTION_API_KEY nicht gesetzt"
 [[ -n "$OLLAMA_API_KEY"  ]] && echo "  ✅ OLLAMA_API_KEY  (${#OLLAMA_API_KEY} Zeichen)" || echo "  ❌ OLLAMA_API_KEY  nicht gesetzt"
 [[ -n "$OPENAI_API_KEY"  ]] && echo "  ✅ OPENAI_API_KEY  (${#OPENAI_API_KEY} Zeichen)" || echo "  ❌ OPENAI_API_KEY  nicht gesetzt"
 [[ -n "$GEMINI_API_KEY"  ]] && echo "  ✅ GEMINI_API_KEY  (${#GEMINI_API_KEY} Zeichen)" || echo "  ❌ GEMINI_API_KEY  nicht gesetzt"
@@ -113,6 +114,8 @@ Stakeholder-Kommunikation, Sicherheits-/Compliance-Prüfungen,
 strategische Roadmaps, Change Management, mehrstufiges Debugging.
 
 ### Modell-Empfehlung
+- **Mercury 2 (Inception)** — ⚡ Primär: ~1000 tok/s, 128K Kontext, OpenAI-kompatibel, sehr günstig
+- **OpenRouter → inception/mercury-2** — Fallback für Mercury 2 ohne direkten API-Key
 - **Ollama gemma3:4b** — Schnell, gut für Formatierung, Übersetzung, einfache Umwandlungen
 - **Ollama gemma3:12b** — Besser für Code, Dokumentation, strukturierte Ausgaben
 - **gpt-4o-mini** — Wenn Ollama nicht verfügbar, gute Allround-Option
@@ -124,7 +127,69 @@ strategische Roadmaps, Change Management, mehrstufiges Debugging.
 
 ## Phase 2: Delegation ausführen
 
-### Option A — Ollama Cloud (empfohlen wenn OLLAMA_API_KEY gesetzt)
+### Option A — Mercury 2 / Inception Labs ⚡ (Primär — schnellstes Modell)
+
+Mercury 2 ist ein Diffusion-LLM mit ~1000 Tokens/Sek und 128K Kontext.
+API-Key: https://platform.inceptionlabs.ai → API Keys (neue Accounts: 10M kostenlose Tokens)
+
+**Fallback:** Falls kein `INCEPTION_API_KEY`, automatisch auf OpenRouter umleiten:
+`MODEL="inception/mercury-2"` + `BASE_URL="https://openrouter.ai/api/v1"` + `API_KEY="$OPENROUTER_API_KEY"`
+
+```bash
+# .env laden
+[[ -z "$INCEPTION_API_KEY" ]] && for _p in $(find /sessions ~/.local-plugins -name '.env' -path '*agent-delegator*' 2>/dev/null); do source "$_p" && break; done
+
+# Auto-Fallback: Inception direkt, oder OpenRouter als Fallback
+if [[ -n "$INCEPTION_API_KEY" ]]; then
+  _BASE_URL="https://api.inceptionlabs.ai/v1"
+  _API_KEY="$INCEPTION_API_KEY"
+  _MODEL="mercury-2"
+  echo "▶ Mercury 2 via Inception Labs (direkt)"
+elif [[ -n "$OPENROUTER_API_KEY" ]]; then
+  _BASE_URL="https://openrouter.ai/api/v1"
+  _API_KEY="$OPENROUTER_API_KEY"
+  _MODEL="inception/mercury-2"
+  echo "▶ Mercury 2 via OpenRouter (Fallback)"
+else
+  echo "❌ Kein API-Key für Mercury 2. Bitte INCEPTION_API_KEY oder OPENROUTER_API_KEY setzen." >&2
+  exit 1
+fi
+
+PROMPT="AUFGABE HIER"
+
+RESPONSE=$(curl -sfL \
+  --max-time 120 \
+  -H "Authorization: Bearer ${_API_KEY}" \
+  -H "Content-Type: application/json" \
+  $([ "$_BASE_URL" = "https://openrouter.ai/api/v1" ] && echo '-H "HTTP-Referer: https://github.com/ydmw74/agent-delegator" -H "X-Title: Agent Delegator"') \
+  -d "$(python3 -c "
+import json, sys
+model, prompt = sys.argv[1], sys.argv[2]
+payload = {
+  'model': model,
+  'messages': [
+    {'role': 'system', 'content': 'Du bist ein präziser Assistent. Erledige die Aufgabe genau. Antworte nur mit dem Ergebnis.'},
+    {'role': 'user', 'content': prompt}
+  ],
+  'temperature': 0.75, 'max_tokens': 8192  # Mercury 2: temp range 0.5-1.0 (default 0.75)
+}
+# reasoning_effort: 'instant' für maximale Geschwindigkeit, 'low'/'medium'/'high' für mehr Tiefe
+if 'mercury' in model:
+    payload['reasoning_effort'] = 'low'  # 'instant' für reine Speed-Tasks
+print(json.dumps(payload))
+)" "$_MODEL" "$PROMPT")" \
+  "${_BASE_URL}/chat/completions")
+
+echo "$RESPONSE" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+print(data['choices'][0]['message']['content'])
+" > /tmp/delegate_result.txt
+
+cat /tmp/delegate_result.txt
+```
+
+### Option B — Ollama Cloud (wenn OLLAMA_API_KEY gesetzt)
 
 ```bash
 # .env laden (falls noch nicht geschehen)
@@ -169,7 +234,7 @@ for m in json.load(sys.stdin).get('data', []):
 " | sort
 ```
 
-### Option B — OpenAI-kompatible API (GPT-4o-mini, Gemini Flash, Groq)
+### Option C — OpenAI-kompatible API (GPT-4o-mini, Gemini Flash, Groq)
 
 ```bash
 # Konfiguration pro Agent:
@@ -201,7 +266,7 @@ print(json.load(sys.stdin)['choices'][0]['message']['content'])
 cat /tmp/delegate_result.txt
 ```
 
-### Option C — Lokales Ollama (kein API-Key nötig)
+### Option D — Lokales Ollama (kein API-Key nötig)
 
 ```bash
 PROMPT="AUFGABE HIER"
@@ -225,7 +290,7 @@ print(json.load(sys.stdin)['message']['content'])
 cat /tmp/delegate_result.txt
 ```
 
-### Option E — OpenRouter (300+ Modelle, inkl. kostenlose)
+### Option F — OpenRouter (300+ Modelle, inkl. kostenlose)
 
 OpenRouter gibt Zugang zu über 300 Modellen mit einem einzigen API-Key.
 Kostenlose Tier-Modelle: `google/gemma-3-4b-it:free`, `meta-llama/llama-3.1-8b-instruct:free`, `mistralai/mistral-7b-instruct:free`
@@ -277,7 +342,7 @@ for m in sorted(free, key=lambda x: x['id']):
 "
 ```
 
-### Option D — Mehrere Subtasks parallel
+### Option G — Mehrere Subtasks parallel
 
 ```bash
 # Subtasks parallel ausführen (Ollama Cloud Beispiel):

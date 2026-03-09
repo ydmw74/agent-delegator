@@ -2,6 +2,48 @@
   "_comment": "Agent Delegator Configuration — edit this file to enable/disable agents and set API keys",
   "agents": [
     {
+      "id": "inception-mercury2",
+      "type": "openai-compatible",
+      "name": "Mercury 2 (Inception Labs — Diffusion LLM, ~1000 tok/s)",
+      "api_base": "https://api.inceptionlabs.ai/v1",
+      "api_key_env": "INCEPTION_API_KEY",
+      "model": "mercury-2",
+      "max_tokens": 4096,
+      "cost_tier": "very-low",
+      "enabled": true,
+      "_note": "API-Key: https://platform.inceptionlabs.ai → API Keys. Neue Accounts erhalten 10M kostenlose Tokens.",
+      "_extra_params": {
+        "diffusing": false,
+        "_info": "diffusing=true zeigt Diffusion-Prozess live beim Streaming (optional, für Debug)",
+        "reasoning_effort": "low",
+        "reasoning_summary": false,
+        "_info_temperature": "Min 0.5, default 0.75 — unlike other providers (0.3 NOT valid)"
+      },
+      "_context_window": "128k",
+      "_latency": "~1000 tokens/sec auf H100 — schnellstes verfügbares Modell",
+      "_fallback_via_openrouter": "inception/mercury-2",
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "simple-qa",
+        "template-filling",
+        "summarization",
+        "translation",
+        "code-completion",
+        "sehr-schnell",
+        "grosser-kontext"
+      ],
+      "temperature_range": "0.5-1.0",
+      "temperature_default": 0.75,
+      "reasoning_effort": [
+        "instant",
+        "low",
+        "medium",
+        "high"
+      ],
+      "max_tokens_range": "1-50000"
+    },
+    {
       "id": "ollama-cloud",
       "type": "openai-compatible",
       "name": "Ollama Cloud (gehostet, OpenAI-kompatibel)",
@@ -179,6 +221,7 @@
   ],
   "routing_rules": {
     "simple": [
+      "inception-mercury2",
       "ollama-cloud",
       "openrouter",
       "ollama-local",
@@ -187,6 +230,7 @@
       "gemini-flash"
     ],
     "medium": [
+      "inception-mercury2",
       "ollama-cloud",
       "openrouter",
       "gpt-4o-mini",
