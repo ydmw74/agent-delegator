@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.5.0
+version: 0.5.1
 ---
 
 # Agent Delegator
@@ -54,6 +54,7 @@ Beim Start diesen Block ausführen — er sucht .env automatisch in bekannten Pf
 _env_loaded=false
 for _p in \
   "$SKILL_DIR/.env" \
+  "$(find /sessions/*/mnt/*/agent-delegator-config -name '.env' 2>/dev/null | head -1)" \
   "$(find /sessions -maxdepth 8 -name '.env' -path '*/agent-delegator*' 2>/dev/null | head -1)" \
   "$(find ~/.skills ~/.local-plugins -name '.env' 2>/dev/null | head -1)"
 do
