@@ -30,7 +30,7 @@ Auf drei reale Ziele beschränkt:
 
 | Agent | Rolle | Typ | Kosten | Setup |
 |-------|-------|-----|--------|-------|
-| **Ollama Cloud** | 🟢 primär | API, OpenAI-kompatibel | sehr günstig | `OLLAMA_API_KEY` in `.env` |
+| **Ollama Cloud** | 🟢 primär | API, OpenAI-kompatibel | Flatrate (pauschal/Monat) | `OLLAMA_API_KEY` in `.env` |
 | **Inception Mercury 2** | ⚡ optional | API, OpenAI-kompatibel | sehr günstig | `INCEPTION_API_KEY` in `.env` |
 | **GX10 / DGX-Spark** | 🔒 lokal | lokal im Heimnetz | kostenlos | kein Key — `http://gx10-74ac.amhomenet.de:8080/v1` |
 
