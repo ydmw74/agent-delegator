@@ -14,18 +14,18 @@ Output (JSON):
     "complexity": "simple" | "medium" | "complex",
     "confidence": 0.0 - 1.0,
     "delegate": true | false,
-    "recommended_agents": ["ollama-cloud", "gpt-4o-mini"],
-    "recommended_model": "llama3.2",
+    "recommended_agents": ["ollama-cloud", "inception-mercury"],
+    "recommended_model": "ministral-3:3b",
     "model_reasoning": "Schnell und ausreichend für Textformatierung",
-    "model_alternatives": ["qwen2.5:3b", "mistral"],
+    "model_alternatives": ["ministral-3:3b", "mistral"],
     "reasoning": "...",
     "task_categories": ["text-transformation", "formatting"],
     "warnings": []
   }
 
 Modell-Empfehlungen gelten primär für Ollama (lokal und Cloud), da dort
-das Modell frei wählbar ist. Bei APIs wie GPT-4o-mini ist das Modell
-bereits in agents.json festgelegt.
+das Modell frei wählbar ist. Bei festen Endpunkten wie Mercury 2
+oder GX10 ist das Modell durch den laufenden Dienst vorgegeben.
 """
 
 import argparse
@@ -135,21 +135,21 @@ CATEGORY_PATTERNS = {
 # ── Modell-Empfehlungen ──────────────────────────────────────────────────────
 #
 # Empfehlungen gelten für Ollama (lokal + Cloud), wo das Modell frei wählbar ist.
-# Für APIs wie gpt-4o-mini ist das Modell in agents.json fixiert.
+# Bei festen Endpunkten (Mercury 2, GX10) gibt der laufende Dienst das Modell vor.
 #
 # Modell-Charakteristika (Orientierungswerte):
-#   llama3.2      — 3B, sehr schnell, gut für Textformatierung/Übersetzung
-#   qwen2.5:3b    — 3B, gut für einfache Code-Snippets
+#   ministral-3:3b      — 3B, sehr schnell, gut für Textformatierung/Übersetzung
+#   gemma3:4b      — 4B, gut für einfache Code-Snippets
 #   mistral       — 7B, ausgewogenes Allround-Modell
-#   qwen2.5:7b    — 7B, stark für Code und Dokumentation
-#   qwen2.5:14b   — 14B, für komplexere Code-Aufgaben
+#   ministral-3:8b    — 7B, stark für Code und Dokumentation
+#   ministral-3:14b   — 14B, für komplexere Code-Aufgaben
 
 MODEL_RECOMMENDATIONS = {
     # EINFACHE Tasks ────────────────────────────────────────────────────────
-    # Ollama Cloud verfügbare Modelle (Stand 2026-03):
+    # Ollama Cloud verfügbare Modelle (Stand 2026-06):
     #   small : gemma3:4b, ministral-3:3b
     #   medium: gemma3:12b, ministral-3:8b
-    #   large : gemma3:27b, ministral-3:14b, gpt-oss:20b
+    #   large : gemma4:31b, ministral-3:14b, gpt-oss:20b
     "simple": {
         "translation": {
             "model": "gemma3:4b",
@@ -210,7 +210,7 @@ MODEL_RECOMMENDATIONS = {
         "code": {
             "model": "ministral-3:14b",
             "reasoning": "Mittlere Code-Aufgaben (Refactoring, Review): ministral-3:14b für bessere Qualität.",
-            "alternatives": ["gemma3:27b", "ministral-3:8b"],
+            "alternatives": ["gemma4:31b", "ministral-3:8b"],
         },
         "documentation": {
             "model": "gemma3:12b",
@@ -362,8 +362,8 @@ def load_enabled_agents(config_path: Optional[str]) -> dict:
     if not config_path or not os.path.exists(config_path):
         return {
             "routing": {
-                "simple": ["gpt-4o-mini"],
-                "medium": ["gpt-4o-mini"],
+                "simple": ["ollama-cloud"],
+                "medium": ["ollama-cloud"],
             },
             "agents": [],
         }
