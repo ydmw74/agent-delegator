@@ -66,16 +66,16 @@ export INCEPTION_API_KEY=...   # https://platform.inceptionlabs.ai → API Keys
 
 **Hardware**: ASUS Ascent GX10 (NVIDIA DGX Spark / GB10), 128 GB Unified Memory.
 
-**Wichtig — Port 8080 bedient nur EINEN Dienst gleichzeitig**:
-- **vLLM** (Autostart, primär): Modell-ID `/model` = `Qwen3.6-35B-A3B-NVFP4` (MoE 35B/3B, Reasoning + Tool-Calling, ~106 tok/s, 65k ctx)
-- **llama-server Router** (Backup): `GLM-4.7-Flash` (Tool-Calling, kein Thinking) · `Qwen3.6-27B-MTP` (Reasoning, ~50 tok/s)
+**Lokal läuft nur llama-server (Router-Modus, Port 8080 — kein vLLM)**:
+- `GLM-4.7-Flash` (Tool-Calling, kein Thinking) — Default
+- `Qwen3.6-27B-MTP` (Reasoning, ~50 tok/s)
 
 Laufendes Modell prüfen:
 ```bash
 curl -s http://gx10-74ac.amhomenet.de:8080/v1/models
 ```
 
-**Grenzen**: Nur im Heimnetz erreichbar; bei Kaltstart von vLLM ~3–5 Min Startzeit.
+**Grenzen**: Nur im Heimnetz erreichbar.
 
 ---
 
