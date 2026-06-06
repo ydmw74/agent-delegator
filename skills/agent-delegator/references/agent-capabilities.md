@@ -19,10 +19,15 @@ Auf drei reale Ziele beschränkt.
 **Endpoint**: `https://ollama.com/v1` (OpenAI-kompatibel), Key `OLLAMA_API_KEY`.
 
 **Empfohlene Modelle** (echter Cloud-Katalog, Stand 2026-06 — ändert sich, mit `--list-models` prüfen):
-- `gemma3:4b`, `ministral-3:3b` — einfach: Formatierung, Übersetzung, Zusammenfassung
+- `gemma3:4b`, `ministral-3:3b` — einfach: Formatierung, Übersetzung, Zusammenfassung (Default)
 - `gemma3:12b`, `ministral-3:8b` — mittel: Docs, strukturierte Ausgaben, einfacher Code
 - `gemma4:31b`, `gpt-oss:20b`, `ministral-3:14b` — stark: anspruchsvollere Tasks
 - `qwen3-coder:480b`, `glm-4.7` — Code-/Tool-lastige Tasks
+- `nemotron-3-ultra` — starkes Reasoning (550B MoE / 55B aktiv, 1M Kontext, Top-Open-Weight)
+- `kimi-k2.6` — **Vision** (Bild + Video, 1T MoE / 32B aktiv, 256K Kontext) — einziges Cloud-Modell mit Multimodalität
+
+> Default bewusst klein/günstig halten. `nemotron-3-ultra`/`kimi-k2.6` nur für anspruchsvolle bzw.
+> multimodale Delegation — bei einfachen Tasks sind sie Overkill (langsamer, teurer).
 
 **Verfügbare Modelle prüfen**:
 ```bash
