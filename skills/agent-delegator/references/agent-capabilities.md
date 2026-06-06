@@ -6,7 +6,7 @@ Auf drei reale Ziele beschränkt.
 
 | Agent | Rolle | Kosten | Geschwindigkeit | Stärken | Grenzen |
 |-------|-------|--------|----------------|---------|---------|
-| **Ollama Cloud** | 🟢 primär | sehr günstig | schnell | Breite Modellauswahl, OpenAI-kompatibel, frei wählbares Modell | Online, Cloud (keine sensiblen Daten) |
+| **Ollama Cloud** | 🟢 primär | Flatrate (pauschal/Monat, keine Token-Kosten) | schnell | Breite Modellauswahl, OpenAI-kompatibel, frei wählbares Modell | Online, Cloud (keine sensiblen Daten) |
 | **Inception Mercury 2** | ⚡ optional | sehr günstig | extrem schnell (~1000 tok/s) | Höchster Durchsatz, 128K Kontext | Online, ein Modell (`mercury-2`) |
 | **GX10 / DGX-Spark** | 🔒 lokal | kostenlos | ~50–106 tok/s | Datenschutz, läuft im Heimnetz, Tool-Calling + Reasoning | Nur im Heimnetz erreichbar, ein Dienst pro Port |
 
@@ -26,8 +26,9 @@ Auf drei reale Ziele beschränkt.
 - `nemotron-3-ultra` — starkes Reasoning (550B MoE / 55B aktiv, 1M Kontext, Top-Open-Weight)
 - `kimi-k2.6` — **Vision** (Bild + Video, 1T MoE / 32B aktiv, 256K Kontext) — einziges Cloud-Modell mit Multimodalität
 
-> Default bewusst klein/günstig halten. `nemotron-3-ultra`/`kimi-k2.6` nur für anspruchsvolle bzw.
-> multimodale Delegation — bei einfachen Tasks sind sie Overkill (langsamer, teurer).
+> Ollama Cloud = monatliche Flatrate → keine Token-Kosten, Modellwahl nur nach Eignung & Speed.
+> Default klein = schnellste Antwort. `nemotron-3-ultra`/`kimi-k2.6` ohne Mehrkosten, aber langsamer —
+> daher nur für anspruchsvolle bzw. multimodale Delegation, nicht für einfache Tasks.
 
 **Verfügbare Modelle prüfen**:
 ```bash
