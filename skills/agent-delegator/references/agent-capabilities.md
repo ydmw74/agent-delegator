@@ -1,131 +1,75 @@
-# Agent Capabilities — Stärken und Grenzen
+# Agent Capabilities — Stärken und Grenzen (Stand 2026-06)
+
+Auf drei reale Ziele beschränkt.
 
 ## Übersicht
 
-| Agent | Kosten | Geschwindigkeit | Stärken | Grenzen |
-|-------|--------|----------------|---------|---------|
-| **Ollama (lokal)** | Kostenlos | Mittel–Schnell | Offline, kein API-Key, Datenschutz | Hardware-abhängig, kleinere Modelle |
-| **GPT-4o-mini** | ~$0.15/1M Tokens | Sehr schnell | Breite Fähigkeiten, zuverlässig | Braucht API-Key, Online |
-| **Gemini Flash** | ~$0.075/1M Tokens | Sehr schnell | Günstig, langer Kontext | Google-API, Online |
-| **Groq (Llama)** | ~$0.05/1M Tokens | Extrem schnell | Günstigste Option | Kleineres Modell |
-| **opencode CLI** | Abhängig v. Modell | Mittel | Code-spezialisiert, File-Ops | Nur Code-Tasks |
+| Agent | Rolle | Kosten | Geschwindigkeit | Stärken | Grenzen |
+|-------|-------|--------|----------------|---------|---------|
+| **Ollama Cloud** | 🟢 primär | sehr günstig | schnell | Breite Modellauswahl, OpenAI-kompatibel, frei wählbares Modell | Online, Cloud (keine sensiblen Daten) |
+| **Inception Mercury 2** | ⚡ optional | sehr günstig | extrem schnell (~1000 tok/s) | Höchster Durchsatz, 128K Kontext | Online, ein Modell (`mercury-2`) |
+| **GX10 / DGX-Spark** | 🔒 lokal | kostenlos | ~50–106 tok/s | Datenschutz, läuft im Heimnetz, Tool-Calling + Reasoning | Nur im Heimnetz erreichbar, ein Dienst pro Port |
 
-## Ollama (lokal)
+---
 
-**Einsatz**: Tasks, die keine Cloud-Verbindung brauchen, oder wenn Datenschutz wichtig ist.
+## Ollama Cloud (primär)
 
-**Empfohlene Modelle**:
-- `llama3.2` (3.2B) — Sehr schnell, gut für Formatting, Transformation, einfache Texte
-- `qwen2.5:7b` (7B) — Besser für Reasoning, Code, Dokumente; ~4GB RAM
-- `qwen2.5:14b` (14B) — Sehr gut; ~9GB RAM, langsamer
-- `mistral` (7B) — Gut für Sprache und strukturierte Ausgaben
-- `phi4` (14B) — Microsofts effizientes Modell, gut für Reasoning
-- `deepseek-r1:8b` — Chain-of-Thought Reasoning, gut für mittelkomplexe Analyse
+**Einsatz**: Standard-Delegationsziel für einfache bis mittlere Tasks.
 
-**Setup**:
-```bash
-# 1. Ollama installieren: https://ollama.ai
-# 2. Modell laden
-ollama pull llama3.2
-# 3. Ollama läuft automatisch als Daemon
-```
+**Endpoint**: `https://ollama.com/v1` (OpenAI-kompatibel), Key `OLLAMA_API_KEY`.
+
+**Empfohlene Modelle** (echter Cloud-Katalog, Stand 2026-06 — ändert sich, mit `--list-models` prüfen):
+- `gemma3:4b`, `ministral-3:3b` — einfach: Formatierung, Übersetzung, Zusammenfassung
+- `gemma3:12b`, `ministral-3:8b` — mittel: Docs, strukturierte Ausgaben, einfacher Code
+- `gemma4:31b`, `gpt-oss:20b`, `ministral-3:14b` — stark: anspruchsvollere Tasks
+- `qwen3-coder:480b`, `glm-4.7` — Code-/Tool-lastige Tasks
 
 **Verfügbare Modelle prüfen**:
 ```bash
 bash ${CLAUDE_PLUGIN_ROOT}/scripts/call_ollama.sh --list-models
 ```
 
-**Grenzen**:
-- Qualität abhängig vom lokalen Modell
-- Langsamer auf schwacher Hardware
-- Keine GPT-4-Klasse bei komplexen Tasks
-- Empfehlung: Ergebnisse bei mittelkomplexen Tasks immer prüfen
+**Grenzen**: Cloud — keine datenschutzkritischen Inhalte. Bei mittleren Tasks Ergebnis prüfen.
 
 ---
 
-## GPT-4o-mini (OpenAI)
+## Inception Mercury 2 (optional, schnellste Option)
 
-**Einsatz**: Breite Palette von einfachen bis mittleren Tasks. Zuverlässigste Option für delegierte Tasks.
+**Einsatz**: Reine Speed-Tasks mit hohem Durchsatz.
 
-**Stärken**:
-- Ausgezeichnet für Textformatierung und -transformation
-- Gut für Übersetzungen (auch technische)
-- Zuverlässig bei Template-Befüllung
-- Gute Code-Kommentierung
-- Strukturierte Datenextraktion
+**Endpoint**: `https://api.inceptionlabs.ai/v1` (OpenAI-kompatibel), Key `INCEPTION_API_KEY`.
+
+**Modell**: `mercury-2` (Diffusion-LLM, ~1000 tok/s, 128K Kontext).
+
+**Parameter**: `temperature` 0.5–1.0 (default 0.75); `reasoning_effort` `instant` (max Speed) → `low`/`medium`/`high` (mehr Tiefe).
 
 **Setup**:
 ```bash
-export OPENAI_API_KEY=sk-...
+export INCEPTION_API_KEY=...   # https://platform.inceptionlabs.ai → API Keys
 ```
-In agents.json: `"enabled": true` bei `gpt-4o-mini`.
 
-**Grenzen**:
-- Kein tiefes Code-Reasoning (kein Kontext über mehrere Dateien)
-- Halluziniert bei spezifischem Domänenwissen
-- Nicht für sicherheitskritische Tasks
+**Grenzen**: Online, nur das eine Modell.
 
 ---
 
-## Gemini 2.0 Flash (Google)
+## GX10 / DGX-Spark (lokal, für sensible Aufgaben)
 
-**Einsatz**: Wenn lange Kontexte nötig sind (bis 1M Tokens) oder als günstigere GPT-4o-mini-Alternative.
+**Einsatz**: Datenschutzkritische Aufgaben — bleibt komplett im Heimnetz, kein externer API-Call.
 
-**Stärken**:
-- Sehr günstiger Preis (~50% günstiger als GPT-4o-mini)
-- Langer Kontext (z.B. große Dokumente zusammenfassen)
-- Schnell
+**Endpoint**: `http://gx10-74ac.amhomenet.de:8080/v1` (OpenAI-kompatibel), **kein API-Key**. Konfig/Repo: `ydmw74/spark-74ac`.
 
-**Setup**:
+**Hardware**: ASUS Ascent GX10 (NVIDIA DGX Spark / GB10), 128 GB Unified Memory.
+
+**Wichtig — Port 8080 bedient nur EINEN Dienst gleichzeitig**:
+- **vLLM** (Autostart, primär): Modell-ID `/model` = `Qwen3.6-35B-A3B-NVFP4` (MoE 35B/3B, Reasoning + Tool-Calling, ~106 tok/s, 65k ctx)
+- **llama-server Router** (Backup): `GLM-4.7-Flash` (Tool-Calling, kein Thinking) · `Qwen3.6-27B-MTP` (Reasoning, ~50 tok/s)
+
+Laufendes Modell prüfen:
 ```bash
-export GEMINI_API_KEY=...
-```
-In agents.json: `"enabled": true` bei `gemini-flash`.
-
-**API-Base**: `https://generativelanguage.googleapis.com/v1beta/openai`
-
----
-
-## Groq (Llama 3.1 8B)
-
-**Einsatz**: Wenn maximale Geschwindigkeit und minimale Kosten Priorität haben (einfachste Tasks).
-
-**Stärken**:
-- Extrem schnell (oft <1 Sekunde)
-- Sehr günstig
-- OpenAI-kompatibel
-
-**Setup**:
-```bash
-export GROQ_API_KEY=...
-```
-In agents.json: `"enabled": true` bei `groq-llama`.
-
-**Grenzen**: Kleineres 8B-Modell — nur für wirklich einfache Tasks.
-
----
-
-## opencode CLI
-
-**Einsatz**: Code-spezifische Tasks, die Dateizugriff und mehrere Iterationen brauchen.
-
-**Stärken**:
-- Kann direkt mit Dateien arbeiten
-- Code-Generierung und Refactoring
-- Debugging-Unterstützung
-
-**Setup**:
-```bash
-npm install -g opencode-ai
-# Modell über OPENCODE_DELEGATE_MODEL konfigurieren
-export OPENCODE_DELEGATE_MODEL=claude-haiku-4-5-20251001
+curl -s http://gx10-74ac.amhomenet.de:8080/v1/models
 ```
 
-**Aktivieren**: In agents.json: `"enabled": true` bei `opencode`.
-
-**Grenzen**:
-- Nur für Code-Tasks sinnvoll
-- Braucht separate Model-Credentials
+**Grenzen**: Nur im Heimnetz erreichbar; bei Kaltstart von vLLM ~3–5 Min Startzeit.
 
 ---
 
@@ -136,7 +80,7 @@ Bearbeite `${CLAUDE_PLUGIN_ROOT}/config/agents.json`:
 {
   "agents": [
     {
-      "id": "gpt-4o-mini",
+      "id": "ollama-cloud",
       "enabled": true,    ← hier ändern
       ...
     }
