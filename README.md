@@ -114,8 +114,8 @@ Setup im Repo `ydmw74/spark-74ac`. Port 8080 bedient nur EINEN Dienst:
 # Laufendes Modell prüfen:
 curl -s http://gx10-74ac.amhomenet.de:8080/v1/models
 
-# vLLM (Autostart): Modell-ID "/model"  = Qwen3.6-35B-A3B-NVFP4
-# llama-server Router (Backup): "GLM-4.7-Flash" / "Qwen3.6-27B-MTP"
+# Nur llama-server (Router-Modus, kein vLLM):
+#   "GLM-4.7-Flash" (Tool-Calling, Default) / "Qwen3.6-27B-MTP" (Reasoning)
 ```
 
 ## Erweiterte Nutzung (optional)
