@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.6.1
+version: 0.6.2
 ---
 
 # Agent Delegator
@@ -117,17 +117,22 @@ strategische Roadmaps, Change Management, mehrstufiges Debugging.
 
 ### Ziel- & Modell-Empfehlung
 
-Nur drei reale Ziele (Stand 2026-06):
+Nur drei reale Ziele (Stand 2026-06).
 
-- **Ollama Cloud** — 🟢 PRIMÄR. OpenAI-kompatibel, sehr günstig. Modell frei wählbar:
-  - einfach: `gemma3:4b`, `ministral-3:3b` ← Default (günstig/schnell)
+> **Kostenmodell (wichtig fürs Routing):** Ollama Cloud läuft auf einer **monatlichen Flatrate** →
+> keine Token-Kosten, egal welches Modell. Mercury 2 ist per-Token (günstig). GX10 ist lokal/gratis.
+> Sinn der Delegation ist, teure **Claude-/Anthropic-Tokens** zu sparen → großzügig an Ollama Cloud
+> delegieren, auch mit starken Modellen.
+
+- **Ollama Cloud** — 🟢 PRIMÄR. OpenAI-kompatibel, monatliche Flatrate (keine Token-Kosten). Modell frei wählbar:
+  - einfach: `gemma3:4b`, `ministral-3:3b` ← Default (schnellste Antwort)
   - mittel: `gemma3:12b`, `ministral-3:8b`
   - stark/Code: `gemma4:31b`, `gpt-oss:20b`, `qwen3-coder:480b`, `glm-4.7`
   - starkes Reasoning: `nemotron-3-ultra` (550B MoE, 1M Kontext, Top-Open-Weight)
   - Vision (Bild/Video): `kimi-k2.6` (1T MoE, nativ multimodal) — einziges Cloud-Modell mit Vision
   - (Katalog ändert sich — Live-Liste via `--list-models`, siehe Option A)
-  - ⚠️ `nemotron-3-ultra`/`kimi-k2.6` nur für anspruchsvolle bzw. multimodale Tasks — für reine
-    Formatierung/Übersetzung bleiben die kleinen Modelle (günstiger, schneller).
+  - Modellwahl nach **Eignung & Geschwindigkeit**, nicht nach Kosten: kleine Modelle = schnellere
+    Antwort; `nemotron-3-ultra`/`kimi-k2.6` ohne Mehrkosten, aber langsamer → nur wo Qualität/Vision nötig.
 - **Inception Mercury 2** — ⚡ optional, schnellste Option (~1000 tok/s, 128K Kontext), `mercury-2`. Für reine Speed-Tasks.
 - **GX10 / DGX-Spark (lokal)** — 🔒 für sensible/datenschutzkritische Aufgaben, läuft komplett im Heimnetz.
   - vLLM (Autostart): Modell-ID `/model` (Qwen3.6-35B-A3B-NVFP4, Reasoning + Tool-Calling)
