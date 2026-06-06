@@ -14,7 +14,7 @@
       "_role": "PRIMÄR — Standard-Delegationsziel für einfache und mittlere Tasks.",
       "_note": "API-Key: https://ollama.com → Account → API Keys. export OLLAMA_API_KEY=... Modell frei wählbar; verfügbare Modelle: bash scripts/call_ollama.sh --list-models",
       "_available_models": {
-        "_hinweis": "Echte Ollama-Cloud-Modelle (Stand 2026-06). Katalog ändert sich — Live-Liste via --list-models prüfen.",
+        "_hinweis": "Echte Ollama-Cloud-Modelle (Stand 2026-06). Katalog ändert sich — Live-Liste via --list-models prüfen. Default-Modell bewusst klein/günstig; große Modelle nur für anspruchsvolle bzw. multimodale Delegation.",
         "small": [
           "gemma3:4b",
           "ministral-3:3b"
@@ -31,6 +31,13 @@
         "code": [
           "qwen3-coder:480b",
           "glm-4.7"
+        ],
+        "strong_reasoning": [
+          "nemotron-3-ultra",
+          "kimi-k2.6"
+        ],
+        "vision": [
+          "kimi-k2.6"
         ]
       },
       "strengths": [
@@ -40,7 +47,9 @@
         "template-filling",
         "summarization",
         "translation",
-        "cloud-verfügbar"
+        "cloud-verfügbar",
+        "vision (kimi-k2.6)",
+        "strong-reasoning (nemotron-3-ultra)"
       ]
     },
     {
