@@ -88,12 +88,9 @@
       "cost_tier": "free",
       "enabled": true,
       "_role": "LOKAL — für datenschutzsensible Aufgaben, läuft komplett im Heimnetz (kein externer API-Call). Repo: ydmw74/spark-74ac.",
-      "_note": "Kein API-Key (Heimnetz). WICHTIG: Port 8080 wird von genau EINEM Dienst bedient. vLLM (Autostart, primär) liefert Modell-ID '/model' = Qwen3.6-35B-A3B-NVFP4 (Reasoning + Tool-Calling, ~106 tok/s). llama-server Router-Modus (Backup) liefert die Modell-IDs 'GLM-4.7-Flash' (Tool-Calling) und 'Qwen3.6-27B-MTP' (Reasoning). Modellname an den laufenden Dienst anpassen!",
+      "_note": "Kein API-Key (Heimnetz). Lokal läuft AUSSCHLIESSLICH llama-server im Router-Modus auf Port 8080 (KEIN vLLM). Modell-IDs: 'GLM-4.7-Flash' (Tool-Calling, Default) und 'Qwen3.6-27B-MTP' (Reasoning). Laufende Modelle prüfen: curl http://gx10-74ac.amhomenet.de:8080/v1/models",
       "_available_models": {
-        "vllm_primary": [
-          "/model"
-        ],
-        "router_backup": [
+        "llama_server": [
           "GLM-4.7-Flash",
           "Qwen3.6-27B-MTP"
         ]
