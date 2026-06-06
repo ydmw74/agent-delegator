@@ -9,12 +9,13 @@
       "api_key_env": "OLLAMA_API_KEY",
       "model": "gemma3:4b",
       "max_tokens": 4096,
-      "cost_tier": "very-low",
+      "cost_tier": "flat-monthly",
+      "_billing": "Monatliche Pauschale (Flatrate) — KEINE Token-Kosten. Modellwahl nur nach Eignung & Geschwindigkeit, nicht nach Kosten. Großzügig hierher delegieren, um teure Claude-Tokens zu sparen.",
       "enabled": true,
       "_role": "PRIMÄR — Standard-Delegationsziel für einfache und mittlere Tasks.",
       "_note": "API-Key: https://ollama.com → Account → API Keys. export OLLAMA_API_KEY=... Modell frei wählbar; verfügbare Modelle: bash scripts/call_ollama.sh --list-models",
       "_available_models": {
-        "_hinweis": "Echte Ollama-Cloud-Modelle (Stand 2026-06). Katalog ändert sich — Live-Liste via --list-models prüfen. Default-Modell bewusst klein/günstig; große Modelle nur für anspruchsvolle bzw. multimodale Delegation.",
+        "_hinweis": "Echte Ollama-Cloud-Modelle (Stand 2026-06). Katalog ändert sich — Live-Liste via --list-models prüfen. Flatrate → keine Token-Kosten; Default klein = schnellste Antwort, große Modelle bei Bedarf ohne Mehrkosten.",
         "small": [
           "gemma3:4b",
           "ministral-3:3b"
