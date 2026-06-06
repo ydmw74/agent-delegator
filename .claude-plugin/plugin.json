@@ -1,6 +1,6 @@
 {
   "name": "agent-delegator",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Delegates simple and medium-complexity tasks to three targets — Ollama Cloud (primary), Inception Mercury 2 (fast), and a local GX10/DGX-Spark endpoint for sensitive work — then consolidates results, keeping Claude focused on high-value reasoning.",
   "author": {
     "name": "Markus Werle"
