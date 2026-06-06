@@ -1,48 +1,6 @@
 {
-  "_comment": "Agent Delegator Configuration — edit this file to enable/disable agents and set API keys",
+  "_comment": "Agent Delegator Configuration (Stand 2026-06) — auf drei reale Ziele beschränkt: Ollama Cloud (primär), Inception Mercury 2 (optional, schnell), GX10/DGX-Spark (lokal, für sensible Aufgaben). enabled/Modelle hier anpassen.",
   "agents": [
-    {
-      "id": "inception-mercury2",
-      "type": "openai-compatible",
-      "name": "Mercury 2 (Inception Labs — Diffusion LLM, ~1000 tok/s)",
-      "api_base": "https://api.inceptionlabs.ai/v1",
-      "api_key_env": "INCEPTION_API_KEY",
-      "model": "mercury-2",
-      "max_tokens": 4096,
-      "cost_tier": "very-low",
-      "enabled": true,
-      "_note": "API-Key: https://platform.inceptionlabs.ai → API Keys. Neue Accounts erhalten 10M kostenlose Tokens.",
-      "_extra_params": {
-        "diffusing": false,
-        "_info": "diffusing=true zeigt Diffusion-Prozess live beim Streaming (optional, für Debug)",
-        "reasoning_effort": "low",
-        "reasoning_summary": false,
-        "_info_temperature": "Min 0.5, default 0.75 — unlike other providers (0.3 NOT valid)"
-      },
-      "_context_window": "128k",
-      "_latency": "~1000 tokens/sec auf H100 — schnellstes verfügbares Modell",
-      "_fallback_via_openrouter": "inception/mercury-2",
-      "strengths": [
-        "text-transformation",
-        "formatting",
-        "simple-qa",
-        "template-filling",
-        "summarization",
-        "translation",
-        "code-completion",
-        "sehr-schnell",
-        "grosser-kontext"
-      ],
-      "temperature_range": "0.5-1.0",
-      "temperature_default": 0.75,
-      "reasoning_effort": [
-        "instant",
-        "low",
-        "medium",
-        "high"
-      ],
-      "max_tokens_range": "1-50000"
-    },
     {
       "id": "ollama-cloud",
       "type": "openai-compatible",
@@ -53,18 +11,10 @@
       "max_tokens": 4096,
       "cost_tier": "very-low",
       "enabled": true,
-      "_note": "Standard-Agent. API-Key: https://ollama.com → Account → API Keys. export OLLAMA_API_KEY=...",
-      "_url_override": "Eigene Cloud-Instanz: OLLAMA_CLOUD_URL=https://dein-server.com/v1 setzen und api_base anpassen",
-      "strengths": [
-        "text-transformation",
-        "formatting",
-        "simple-qa",
-        "template-filling",
-        "summarization",
-        "cloud-verfügbar",
-        "kein-eigenes-hardware"
-      ],
+      "_role": "PRIMÄR — Standard-Delegationsziel für einfache und mittlere Tasks.",
+      "_note": "API-Key: https://ollama.com → Account → API Keys. export OLLAMA_API_KEY=... Modell frei wählbar; verfügbare Modelle: bash scripts/call_ollama.sh --list-models",
       "_available_models": {
+        "_hinweis": "Echte Ollama-Cloud-Modelle (Stand 2026-06). Katalog ändert sich — Live-Liste via --list-models prüfen.",
         "small": [
           "gemma3:4b",
           "ministral-3:3b"
@@ -74,169 +24,93 @@
           "ministral-3:8b"
         ],
         "large": [
-          "gemma3:27b",
+          "gemma4:31b",
           "ministral-3:14b",
           "gpt-oss:20b"
+        ],
+        "code": [
+          "qwen3-coder:480b",
+          "glm-4.7"
         ]
-      }
-    },
-    {
-      "id": "gpt-4o-mini",
-      "type": "openai-compatible",
-      "name": "GPT-4o Mini (OpenAI)",
-      "api_base": "https://api.openai.com/v1",
-      "api_key_env": "OPENAI_API_KEY",
-      "model": "gpt-4o-mini",
-      "max_tokens": 4096,
-      "cost_tier": "low",
-      "enabled": true,
-      "strengths": [
-        "text-transformation",
-        "formatting",
-        "code-completion",
-        "documentation",
-        "translation",
-        "summarization",
-        "template-filling",
-        "regex-parsing"
-      ]
-    },
-    {
-      "id": "gemini-flash",
-      "type": "openai-compatible",
-      "name": "Gemini 2.0 Flash (Google)",
-      "api_base": "https://generativelanguage.googleapis.com/v1beta/openai",
-      "api_key_env": "GEMINI_API_KEY",
-      "model": "gemini-2.0-flash",
-      "max_tokens": 8192,
-      "cost_tier": "low",
-      "enabled": false,
-      "strengths": [
-        "text-transformation",
-        "long-context",
-        "code-completion",
-        "documentation",
-        "translation",
-        "summarization"
-      ]
-    },
-    {
-      "id": "groq-llama",
-      "type": "openai-compatible",
-      "name": "Llama 3.1 8B (Groq — sehr schnell, sehr günstig)",
-      "api_base": "https://api.groq.com/openai/v1",
-      "api_key_env": "GROQ_API_KEY",
-      "model": "llama-3.1-8b-instant",
-      "max_tokens": 4096,
-      "cost_tier": "very-low",
-      "enabled": false,
+      },
       "strengths": [
         "text-transformation",
         "formatting",
         "simple-qa",
-        "template-filling"
+        "template-filling",
+        "summarization",
+        "translation",
+        "cloud-verfügbar"
       ]
     },
     {
-      "id": "ollama-local",
-      "type": "ollama",
-      "name": "Lokales Modell via Ollama (kein API-Key nötig, kostenlos, offline)",
-      "api_base": "http://localhost:11434",
-      "model": "llama3.2",
-      "max_tokens": 4096,
+      "id": "inception-mercury",
+      "type": "openai-compatible",
+      "name": "Inception Mercury 2 (Diffusion-LLM, ⚡ ~1000 tok/s)",
+      "api_base": "https://api.inceptionlabs.ai/v1",
+      "api_key_env": "INCEPTION_API_KEY",
+      "model": "mercury-2",
+      "max_tokens": 8192,
+      "cost_tier": "very-low",
+      "enabled": true,
+      "_role": "OPTIONAL — schnellste Option für reine Speed-Tasks (verifiziert funktionsfähig, Stand 2026-06).",
+      "_note": "API-Key: https://platform.inceptionlabs.ai → API Keys. reasoning_effort: 'instant' (max Speed) bis 'high' (mehr Tiefe). temperature 0.5–1.0 (default 0.75). 128K Kontext.",
+      "_params": {
+        "reasoning_effort": "low",
+        "temperature": 0.75
+      },
+      "strengths": [
+        "text-transformation",
+        "formatting",
+        "summarization",
+        "translation",
+        "fast-throughput"
+      ]
+    },
+    {
+      "id": "gx10-local",
+      "type": "openai-compatible",
+      "name": "GX10 / DGX-Spark (lokal, OpenAI-kompatibel — für sensible Aufgaben)",
+      "api_base": "http://gx10-74ac.amhomenet.de:8080/v1",
+      "api_key_env": null,
+      "model": "GLM-4.7-Flash",
+      "max_tokens": 8192,
       "cost_tier": "free",
       "enabled": true,
-      "_note": "Aktiviert sobald Ollama läuft. Modell laden: ollama pull llama3.2",
-      "strengths": [
-        "text-transformation",
-        "formatting",
-        "simple-qa",
-        "offline",
-        "datenschutz"
-      ]
-    },
-    {
-      "id": "openrouter",
-      "type": "openai-compatible",
-      "name": "OpenRouter (Modell-Aggregator, 300+ Modelle)",
-      "api_base": "https://openrouter.ai/api/v1",
-      "api_key_env": "OPENROUTER_API_KEY",
-      "model": "google/gemma-3-4b-it:free",
-      "max_tokens": 4096,
-      "cost_tier": "very-low",
-      "enabled": true,
-      "_note": "API-Key: https://openrouter.ai → Keys. Zugang zu 300+ Modellen incl. kostenlose Tier-Modelle.",
-      "_extra_headers": {
-        "HTTP-Referer": "https://github.com/ydmw74/agent-delegator",
-        "X-Title": "Agent Delegator"
-      },
+      "_role": "LOKAL — für datenschutzsensible Aufgaben, läuft komplett im Heimnetz (kein externer API-Call). Repo: ydmw74/spark-74ac.",
+      "_note": "Kein API-Key (Heimnetz). WICHTIG: Port 8080 wird von genau EINEM Dienst bedient. vLLM (Autostart, primär) liefert Modell-ID '/model' = Qwen3.6-35B-A3B-NVFP4 (Reasoning + Tool-Calling, ~106 tok/s). llama-server Router-Modus (Backup) liefert die Modell-IDs 'GLM-4.7-Flash' (Tool-Calling) und 'Qwen3.6-27B-MTP' (Reasoning). Modellname an den laufenden Dienst anpassen!",
       "_available_models": {
-        "free": [
-          "google/gemma-3-4b-it:free",
-          "google/gemma-3-12b-it:free",
-          "meta-llama/llama-3.1-8b-instruct:free",
-          "mistralai/mistral-7b-instruct:free",
-          "qwen/qwen-2.5-7b-instruct:free"
+        "vllm_primary": [
+          "/model"
         ],
-        "low-cost": [
-          "google/gemma-3-27b-it",
-          "meta-llama/llama-3.1-70b-instruct",
-          "mistralai/mistral-small-3.1-24b-instruct",
-          "qwen/qwen-2.5-72b-instruct"
-        ],
-        "mid-range": [
-          "anthropic/claude-haiku-4-5",
-          "openai/gpt-4o-mini",
-          "google/gemini-flash-1.5"
+        "router_backup": [
+          "GLM-4.7-Flash",
+          "Qwen3.6-27B-MTP"
         ]
       },
       "strengths": [
-        "text-transformation",
-        "formatting",
-        "simple-qa",
-        "template-filling",
-        "summarization",
-        "translation",
-        "code-completion",
-        "documentation",
-        "modell-vielfalt",
-        "kostenlose-modelle"
-      ]
-    },
-    {
-      "id": "opencode",
-      "type": "opencode-cli",
-      "name": "opencode CLI",
-      "model": "claude-haiku-4-5-20251001",
-      "cost_tier": "low",
-      "enabled": false,
-      "strengths": [
+        "datenschutz",
+        "offline-heimnetz",
+        "tool-calling",
+        "reasoning",
         "code-generation",
-        "code-review",
-        "refactoring",
-        "debugging",
-        "file-operations"
+        "sensible-daten"
       ]
     }
   ],
   "routing_rules": {
     "simple": [
-      "inception-mercury2",
       "ollama-cloud",
-      "openrouter",
-      "ollama-local",
-      "groq-llama",
-      "gpt-4o-mini",
-      "gemini-flash"
+      "inception-mercury",
+      "gx10-local"
     ],
     "medium": [
-      "inception-mercury2",
       "ollama-cloud",
-      "openrouter",
-      "gpt-4o-mini",
-      "gemini-flash",
-      "ollama-local",
-      "opencode"
+      "gx10-local",
+      "inception-mercury"
+    ],
+    "sensitive": [
+      "gx10-local"
     ],
     "complex": "claude-direct"
   },
