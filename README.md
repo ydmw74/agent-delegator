@@ -12,8 +12,8 @@ User-Aufgabe
   Claude (Orchestrator)
     │
     ├─── Einfach/Mittel ──► Günstigerer Agent ──► Ergebnis zurück
-    │                       (Ollama/GPT-mini/             │
-    │                        Gemini/Groq)                 │
+    │                       (Ollama Cloud /              │
+    │                        Mercury 2 / GX10 lokal)     │
     │                                                     ▼
     └─── Komplex ──────────────────────────────► Claude direkt
                                                           │
@@ -24,15 +24,17 @@ User-Aufgabe
 **Claude bleibt immer der Orchestrator.** Es zerlegt Aufgaben, delegiert
 abgrenzbare Subtasks und prüft die Ergebnisse.
 
-## Unterstützte Agenten
+## Unterstützte Agenten (Stand 2026-06)
 
-| Agent | Typ | Kosten | Setup |
-|-------|-----|--------|-------|
-| **Ollama Cloud** | API, pay-per-use | Günstig | `OLLAMA_API_KEY` in `.env` |
-| **Ollama lokal** | Lokal, kostenlos | Kostenlos | Ollama installieren + Modell laden |
-| **GPT-4o-mini** | OpenAI API | ~$0.15/1M Token | `OPENAI_API_KEY` in `.env` |
-| **Gemini Flash** | Google API | ~$0.075/1M Token | `GEMINI_API_KEY` in `.env` |
-| **Groq (Llama)** | Groq API | ~$0.05/1M Token | `GROQ_API_KEY` in `.env` |
+Auf drei reale Ziele beschränkt:
+
+| Agent | Rolle | Typ | Kosten | Setup |
+|-------|-------|-----|--------|-------|
+| **Ollama Cloud** | 🟢 primär | API, OpenAI-kompatibel | sehr günstig | `OLLAMA_API_KEY` in `.env` |
+| **Inception Mercury 2** | ⚡ optional | API, OpenAI-kompatibel | sehr günstig | `INCEPTION_API_KEY` in `.env` |
+| **GX10 / DGX-Spark** | 🔒 lokal | lokal im Heimnetz | kostenlos | kein Key — `http://gx10-74ac.amhomenet.de:8080/v1` |
+
+Das lokale GX10-Setup ist im Repo `ydmw74/spark-74ac` dokumentiert.
 
 ## Installation
 
@@ -51,18 +53,16 @@ Ordner, den du in Cowork als Arbeitsordner geöffnet hast.
 # .env.example aus der .zip als Vorlage verwenden:
 cp .env.example .env
 
-# Keys eintragen (mindestens einen):
-OLLAMA_API_KEY=dein-key-hier
-# OPENAI_API_KEY=sk-...
-# GEMINI_API_KEY=...
-# GROQ_API_KEY=...
+# Keys eintragen:
+OLLAMA_API_KEY=dein-key-hier      # primär
+# INCEPTION_API_KEY=...           # optional (Mercury 2, schnellste Option)
+# GX10 lokal braucht keinen Key (Heimnetz-Endpoint)
 ```
 
 API-Keys bekommst du hier:
-- Ollama Cloud: https://ollama.com/settings/keys
-- OpenAI: https://platform.openai.com/api-keys
-- Gemini: https://aistudio.google.com/apikey
-- Groq: https://console.groq.com/keys
+- Ollama Cloud (primär): https://ollama.com/settings/keys
+- Inception Mercury 2 (optional): https://platform.inceptionlabs.ai
+- GX10 / DGX-Spark (lokal): kein Key — Endpoint `http://gx10-74ac.amhomenet.de:8080/v1`
 
 > **Tipp:** Das `.zip` enthält `.env.example` als Vorlage zum Kopieren.
 > Entpacken mit: `unzip agent-delegator.zip`
@@ -91,8 +91,9 @@ Auslöser: "delegiere das", "spare Tokens", "nutze Ollama", etc.
 
 | Komplexität | Delegation | Empfohlene Agenten |
 |-------------|-----------|-------------------|
-| **Einfach** | ✅ Ja | Ollama gemma3:4b → Groq → GPT-4o-mini |
-| **Mittel** | ✅ Ja (+ Review) | Ollama gemma3:12b → GPT-4o-mini → Gemini |
+| **Einfach** | ✅ Ja | Ollama Cloud `gemma3:4b` → Mercury 2 |
+| **Mittel** | ✅ Ja (+ Review) | Ollama Cloud `gemma3:12b`/`gemma4:31b` → GX10 lokal |
+| **Sensibel** | ✅ Ja (lokal) | GX10 / DGX-Spark (Heimnetz) |
 | **Komplex** | ❌ Nein | Claude direkt |
 
 **Einfach:** Textformatierung, Übersetzung, Template-Befüllung,
@@ -104,12 +105,17 @@ RACI-Matrix, Meeting-Agenden, Risiko-Templates.
 **Komplex (immer Claude):** Architekturentscheidungen, Risikoanalysen,
 Stakeholder-Kommunikation, Sicherheits- und Compliance-Prüfungen.
 
-## Ollama lokal einrichten (optional, kein API-Key nötig)
+## GX10 / DGX-Spark lokal (für sensible Aufgaben, kein API-Key)
+
+Läuft komplett im Heimnetz — OpenAI-kompatibler Endpoint auf Port 8080.
+Setup im Repo `ydmw74/spark-74ac`. Port 8080 bedient nur EINEN Dienst:
 
 ```bash
-# Ollama installieren: https://ollama.ai
-ollama pull gemma3:4b        # Schnell, gut für einfache Tasks
-ollama pull gemma3:12b       # Besser für Code und Dokumentation
+# Laufendes Modell prüfen:
+curl -s http://gx10-74ac.amhomenet.de:8080/v1/models
+
+# vLLM (Autostart): Modell-ID "/model"  = Qwen3.6-35B-A3B-NVFP4
+# llama-server Router (Backup): "GLM-4.7-Flash" / "Qwen3.6-27B-MTP"
 ```
 
 ## Erweiterte Nutzung (optional)
