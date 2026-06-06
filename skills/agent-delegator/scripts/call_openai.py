@@ -2,20 +2,20 @@
 """
 Agent Delegator — OpenAI-compatible API Caller
 ===============================================
-Calls any OpenAI-compatible API endpoint (OpenAI, Gemini, Groq, Mistral,
-Ollama, etc.) and returns the model's response to stdout.
+Calls any OpenAI-compatible API endpoint (Ollama Cloud, Inception Mercury 2,
+GX10/DGX-Spark, etc.) and returns the model's response to stdout.
 
 Usage:
   python call_openai.py \\
     --prompt "Formatiere diesen Text als Markdown-Tabelle: ..." \\
-    --agent-id gpt-4o-mini \\
+    --agent-id ollama-cloud \\
     --config /path/to/agents.json
 
   python call_openai.py \\
     --prompt "..." \\
-    --api-base https://api.openai.com/v1 \\
-    --model gpt-4o-mini \\
-    --api-key-env OPENAI_API_KEY
+    --api-base https://ollama.com/v1 \\
+    --model gemma3:4b \\
+    --api-key-env OLLAMA_API_KEY
 
 Output:
   Writes model response to stdout (or --output-file if specified).
@@ -142,7 +142,7 @@ def main():
     # Direct mode (overrides config)
     parser.add_argument("--api-base", help="API base URL")
     parser.add_argument("--model", help="Model name")
-    parser.add_argument("--api-key-env", default="OPENAI_API_KEY", help="Env var with API key")
+    parser.add_argument("--api-key-env", default="OLLAMA_API_KEY", help="Env var with API key")
     parser.add_argument("--max-tokens", type=int, default=4096)
 
     # Task input
