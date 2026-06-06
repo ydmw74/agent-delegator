@@ -51,13 +51,27 @@ def check_ollama() -> dict:
             if len(models) > 3:
                 detail += f" (+{len(models)-3} weitere)"
         else:
-            detail = "läuft — keine Modelle geladen (ollama pull llama3.2)"
+            detail = "läuft — keine Modelle geladen (ollama pull ministral-3:3b)"
         return {"name": "Ollama", "ok": True, "detail": detail}
     except Exception:
         return {
             "name": "Ollama",
             "ok": False,
             "detail": "nicht erreichbar — starte Ollama oder installiere: https://ollama.ai",
+        }
+
+
+def check_gx10() -> dict:
+    """Prüft, ob der lokale GX10/DGX-Spark-Endpoint erreichbar ist."""
+    try:
+        with urllib.request.urlopen("http://gx10-74ac.amhomenet.de:8080/health", timeout=4):
+            pass
+        return {"name": "GX10 lokal", "ok": True, "detail": "erreichbar (:8080) — für sensible Aufgaben"}
+    except Exception:
+        return {
+            "name": "GX10 lokal",
+            "ok": False,
+            "detail": "nicht erreichbar (nur im Heimnetz; vLLM/llama-server gestartet?)",
         }
 
 
@@ -103,12 +117,9 @@ def main():
         check_curl(),
         check_config(),
         ("", None),  # Separator
-        check_ollama(),
-        check_opencode(),
-        ("", None),
-        check_api_key("OPENAI_API_KEY", "OpenAI"),
-        check_api_key("GEMINI_API_KEY", "Gemini"),
-        check_api_key("GROQ_API_KEY", "Groq"),
+        check_api_key("OLLAMA_API_KEY", "Ollama Cloud (primär)"),
+        check_api_key("INCEPTION_API_KEY", "Inception Mercury 2 (optional)"),
+        check_gx10(),
     ]
 
     if as_json:
@@ -137,15 +148,16 @@ def main():
             print(f"   → {c['name']}: {c['detail']}")
     else:
         enabled_agents = [
-            c for c in all_checks[4:]  # Skip python/curl/config/separator
+            c for c in all_checks[3:]  # Skip python/curl/config
             if c["ok"] and c["name"] not in ("", )
         ]
         if enabled_agents:
-            print("✅ Bereit. Aktivierte Delegation-Targets:", len(enabled_agents))
+            print("✅ Bereit. Aktive Delegation-Targets:", len(enabled_agents))
         else:
             print("⚠️  Keine Delegation-Targets aktiv.")
-            print("   → Aktiviere Ollama (starte die App) oder setze einen API-Key.")
-            print("   → Aktiviere Agenten in config/agents.json (enabled: true)")
+            print("   → OLLAMA_API_KEY in .env setzen (primär), optional INCEPTION_API_KEY,")
+            print("     oder GX10 lokal starten (vLLM/llama-server im Heimnetz).")
+            print("   → Agenten in config/agents.json aktivieren (enabled: true)")
 
 
 if __name__ == "__main__":
