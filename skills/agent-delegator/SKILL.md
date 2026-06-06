@@ -15,7 +15,7 @@ description: >
 
   Trigger auch automatisch, wenn der User Token-Kosten sparen will oder einen
   Task beschreibt, der klar abgegrenzt und repetitiv ist.
-version: 0.6.2
+version: 0.6.3
 ---
 
 # Agent Delegator
@@ -76,7 +76,7 @@ echo "Delegationsziele:"
 if curl -sf --max-time 4 "http://gx10-74ac.amhomenet.de:8080/health" >/dev/null 2>&1; then
   echo "  ✅ GX10 lokal         erreichbar (gx10-74ac.amhomenet.de:8080) — für sensible Aufgaben"
 else
-  echo "  ⚠️  GX10 lokal         nicht erreichbar (nur im Heimnetz; vLLM/llama-server gestartet?)"
+  echo "  ⚠️  GX10 lokal         nicht erreichbar (nur im Heimnetz; llama-server gestartet?)"
 fi
 ```
 
@@ -135,8 +135,7 @@ Nur drei reale Ziele (Stand 2026-06).
     Antwort; `nemotron-3-ultra`/`kimi-k2.6` ohne Mehrkosten, aber langsamer → nur wo Qualität/Vision nötig.
 - **Inception Mercury 2** — ⚡ optional, schnellste Option (~1000 tok/s, 128K Kontext), `mercury-2`. Für reine Speed-Tasks.
 - **GX10 / DGX-Spark (lokal)** — 🔒 für sensible/datenschutzkritische Aufgaben, läuft komplett im Heimnetz.
-  - vLLM (Autostart): Modell-ID `/model` (Qwen3.6-35B-A3B-NVFP4, Reasoning + Tool-Calling)
-  - llama-server Router (Backup): `GLM-4.7-Flash` (Tool-Calling) · `Qwen3.6-27B-MTP` (Reasoning)
+  - Nur **llama-server** (Router-Modus, kein vLLM): `GLM-4.7-Flash` (Tool-Calling, Default) · `Qwen3.6-27B-MTP` (Reasoning)
 
 ---
 
@@ -230,15 +229,15 @@ cat /tmp/delegate_result.txt
 
 Läuft komplett im Heimnetz, kein externer API-Call, kein API-Key. Repo: `ydmw74/spark-74ac`.
 
-> **Modell-ID an den laufenden Dienst anpassen** (Port 8080, nur EINER aktiv):
-> - vLLM (Autostart, primär) → `MODEL="/model"` (Qwen3.6-35B-A3B-NVFP4)
-> - llama-server Router (Backup) → `MODEL="GLM-4.7-Flash"` (Tool-Calling) oder `MODEL="Qwen3.6-27B-MTP"` (Reasoning)
+> Lokal läuft **nur llama-server** (Router-Modus, Port 8080 — kein vLLM):
+> - `MODEL="GLM-4.7-Flash"` (Tool-Calling, Default)
+> - `MODEL="Qwen3.6-27B-MTP"` (Reasoning)
 >
 > Laufendes Modell prüfen: `curl -s http://gx10-74ac.amhomenet.de:8080/v1/models`
 
 ```bash
 BASE_URL="http://gx10-74ac.amhomenet.de:8080/v1"
-MODEL="/model"          # bei Router-Modus: GLM-4.7-Flash bzw. Qwen3.6-27B-MTP
+MODEL="GLM-4.7-Flash"   # Reasoning-Tasks: Qwen3.6-27B-MTP
 PROMPT="AUFGABE HIER"
 
 curl -sf --max-time 180 \
