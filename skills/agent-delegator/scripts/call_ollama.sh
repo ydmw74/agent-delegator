@@ -7,12 +7,12 @@
 # OpenAI-kompatiblem /v1/chat/completions (Cloud) je nach Kontext.
 #
 # Lokal:
-#   ./call_ollama.sh --prompt "..." [--model llama3.2]
+#   ./call_ollama.sh --prompt "..." [--model ministral-3:3b]
 #
 # Ollama Cloud:
 #   export OLLAMA_API_KEY=ollama_...   # von https://ollama.com/settings/keys
 #   export OLLAMA_HOST=https://ollama.com
-#   ./call_ollama.sh --prompt "..." --model llama3.2
+#   ./call_ollama.sh --prompt "..." --model ministral-3:3b
 #
 # Eigene Cloud-Instanz:
 #   export OLLAMA_HOST=https://mein-server.example.com
@@ -26,12 +26,12 @@
 #   OLLAMA_HOST       Ollama-URL. Wenn mit https:// → Cloud-Modus (Auth + /v1)
 #                     Default: http://localhost:11434
 #   OLLAMA_API_KEY    API-Key für Cloud oder auth-gesicherte Instanzen
-#   OLLAMA_MODEL      Standard-Modell wenn --model nicht gesetzt (default: llama3.2)
+#   OLLAMA_MODEL      Standard-Modell wenn --model nicht gesetzt (default: ministral-3:3b)
 #
 # Empfohlene Modelle für Delegation (lokal & Cloud):
-#   llama3.2          3.2B  — sehr schnell, einfache Formatting-Tasks
-#   qwen2.5:7b        7B    — gut für Texte, Code, Dokumente
-#   qwen2.5:14b       14B   — stark, empfohlen für mittlere Tasks (~10GB RAM lokal)
+#   ministral-3:3b          3.2B  — sehr schnell, einfache Formatting-Tasks
+#   ministral-3:8b        7B    — gut für Texte, Code, Dokumente
+#   ministral-3:14b       14B   — stark, empfohlen für mittlere Tasks (~10GB RAM lokal)
 #   mistral           7B    — gut für Sprache und strukturierte Ausgaben
 #   phi4              14B   — Microsoft, sehr effizient
 #   deepseek-r1:8b    8B    — Reasoning-optimiert
@@ -156,7 +156,7 @@ import json, sys
 data = json.load(sys.stdin)
 models = data.get('models', [])
 if not models:
-    print('  (keine Modelle — lade: ollama pull llama3.2)')
+    print('  (keine Modelle — lade: ollama pull ministral-3:3b)')
 for m in models:
     name = m.get('name', '?')
     size_gb = round(m.get('size', 0) / 1024**3, 1)
