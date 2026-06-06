@@ -88,6 +88,20 @@ def check_ollama() -> dict:
         }
 
 
+def check_gx10() -> dict:
+    """Prüft, ob der lokale GX10/DGX-Spark-Endpoint erreichbar ist."""
+    try:
+        with urllib.request.urlopen("http://gx10-74ac.amhomenet.de:8080/health", timeout=4):
+            pass
+        return {"name": "GX10 lokal", "ok": True, "detail": "erreichbar (:8080) — für sensible Aufgaben"}
+    except Exception:
+        return {
+            "name": "GX10 lokal",
+            "ok": False,
+            "detail": "nicht erreichbar (nur im Heimnetz; vLLM/llama-server gestartet?)",
+        }
+
+
 def check_api_key(env_var: str, service: str) -> dict:
     val = os.environ.get(env_var, "")
     ok = len(val) > 10
@@ -150,12 +164,9 @@ def main():
         check_env_file(skill_root),
         check_config(skill_root),
         None,  # Separator
-        check_ollama(),
-        check_api_key("OLLAMA_API_KEY", "Ollama Cloud"),
-        None,
-        check_api_key("OPENAI_API_KEY", "OpenAI (GPT-4o-mini)"),
-        check_api_key("GEMINI_API_KEY", "Gemini Flash"),
-        check_api_key("GROQ_API_KEY", "Groq (Llama)"),
+        check_api_key("OLLAMA_API_KEY", "Ollama Cloud (primär)"),
+        check_api_key("INCEPTION_API_KEY", "Inception Mercury 2 (optional)"),
+        check_gx10(),
     ]
 
     if as_json:
@@ -192,7 +203,8 @@ def main():
             print(f"✅ Bereit. {len(active)} Delegation-Target(s) aktiv.")
         else:
             print("⚠️  Kein Delegation-Target aktiv.")
-            print("   → Starte Ollama lokal, oder trage einen API-Key in .env ein.")
+            print("   → OLLAMA_API_KEY in .env eintragen (primär), optional INCEPTION_API_KEY,")
+            print("     oder GX10 lokal starten (vLLM/llama-server im Heimnetz).")
             print(f"   → .env liegt in: {skill_root}")
 
 
